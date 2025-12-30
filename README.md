@@ -28,9 +28,9 @@ This is a full-stack store management system built with:
 Follow me on social media for updates and more projects:
 
 - **GitHub**: [Phearakphuwasit](https://github.com/Phearakphuwasit)
-- **LinkedIn**: [Your LinkedIn Profile](https://www.linkedin.com/in/samloth-phearak-4683452a4/)
-- **Telegram**: [@your-handle](https://t.me/samlothphearak)
-- **Facebook**: [Your Facebook Page](https://www.facebook.com/share/17WRqyNfJu/?mibextid=wwXIfr)
+- **LinkedIn**: [Samloth Phearak](https://www.linkedin.com/in/samloth-phearak-4683452a4/)
+- **Telegram**: [@samlothphearak](https://t.me/samlothphearak)
+- **Facebook**: [Samloth Phearak](https://www.facebook.com/share/17WRqyNfJu/?mibextid=wwXIfr)
 
 ---
 
