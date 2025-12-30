@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent],
-  templateUrl: './app.component.html',
+  imports: [RouterOutlet, SidebarComponent, CommonModule],
+  templateUrl: "./app.component.html"
 })
 export class AppComponent implements OnInit {
   showSidebar: boolean = true;
@@ -16,10 +17,8 @@ export class AppComponent implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    // Initial check
     this.updateSidebar(this.router.url);
 
-    // Subscribe to route changes
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
@@ -28,8 +27,11 @@ export class AppComponent implements OnInit {
   }
 
   private updateSidebar(url: string) {
-    // Use bracket notation to satisfy TypeScript
-    const currentRoute = this.router.routerState.root.firstChild?.snapshot.data;
-    this.showSidebar = !(currentRoute && currentRoute['hideSidebar']);
-  }
+  // Extract the first part of the URL path
+  const path = url.split('?')[0]; // remove query params
+  const hideOn = ['/login', '/register'];
+  
+  this.showSidebar = !hideOn.includes(path);
+}
+
 }

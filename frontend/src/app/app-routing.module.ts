@@ -16,11 +16,11 @@ import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
 
 const routes: Routes = [
-  // Public routes
+  // =========================Public routes==========================
   { path: 'login', component: LoginComponent, data: { hideSidebar: true } },
   { path: 'register', component: RegisterComponent, data: { hideSidebar: true } },
 
-  // Protected routes
+  // =========================Protected routes==========================
   { path: 'admin', component: AdminDashboardComponent, canActivate: [AuthGuard] },
   { path: 'inventory/products', component: ProductsComponent, canActivate: [AuthGuard] },
   { path: 'inventory/categories', component: CategoriesComponent, canActivate: [AuthGuard] },

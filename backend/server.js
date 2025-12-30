@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const fileUpload = require("express-fileupload");
 const connectDB = require("./config/db");
 const path = require("path");
 
@@ -26,7 +27,12 @@ connectDB();
 // Middleware
 app.use(cors());
 app.use(helmet());
+app.use(fileUpload({
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  abortOnLimit: true,
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
 // Serve static files (for images)

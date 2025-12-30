@@ -10,6 +10,7 @@ import { SalesReportComponent } from './pages/reports/sales-report/sales-report.
 import { InventoryReportComponent } from './pages/reports/inventory-report/inventory-report.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
+import { ProfileComponent } from './pages/profile/profile.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -18,7 +19,7 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
 
   // Admin / Main (protected)
-  { path: 'admin', component: AdminDashboardComponent, canActivate: [AuthGuard] },
+  { path: 'dashboard', component: AdminDashboardComponent, canActivate: [AuthGuard] },
 
   // Inventory
   { path: 'inventory/products', component: ProductsComponent, canActivate: [AuthGuard] },
@@ -34,9 +35,12 @@ export const routes: Routes = [
   { path: 'reports/sales', component: SalesReportComponent, canActivate: [AuthGuard] },
   { path: 'reports/inventory', component: InventoryReportComponent, canActivate: [AuthGuard] },
 
+  // Profile
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+
   // Default redirect
-  { path: '', redirectTo: 'admin', pathMatch: 'full' },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
   // Wildcard redirect
-  { path: '**', redirectTo: 'admin' },
+  { path: '**', redirectTo: 'dashboard' },
 ];

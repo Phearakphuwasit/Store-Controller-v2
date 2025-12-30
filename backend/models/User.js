@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
-    default: "/public/images/default-profile.png",
+    default: null,
     validate: {
       validator: function (v) {
         return !v || /\.(png|jpe?g|gif|webp|svg)$/i.test(v);

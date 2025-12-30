@@ -12,6 +12,15 @@ export class AuthService {
     const user = localStorage.getItem('currentUser');
     if (user) {
       this.currentUser.next(JSON.parse(user));
+    } else {
+      // Check for old 'username' key and migrate
+      const oldUsername = localStorage.getItem('username');
+      if (oldUsername) {
+        const migratedUser = { fullName: oldUsername };
+        localStorage.setItem('currentUser', JSON.stringify(migratedUser));
+        localStorage.removeItem('username');
+        this.currentUser.next(migratedUser);
+      }
     }
   }
 
@@ -27,12 +36,7 @@ export class AuthService {
   }
 
   // ================= REGISTER =================
-  register(data: {
-    fullName: string;
-    email: string;
-    password: string;
-    role: string;
-  }): Observable<any> {
+  register(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/register`, data).pipe(
       tap((res: any) => {
         localStorage.setItem('token', res.token);
@@ -48,6 +52,20 @@ export class AuthService {
     localStorage.removeItem('currentUser');
     this.currentUser.next(null);
     this.router.navigate(['/login']);
+  }
+
+  // ================= UPDATE PROFILE =================
+  updateProfile(data: any): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = { 'Authorization': token || '' };
+    return this.http.put(`${this.apiUrl}/auth/profile`, data, { headers }).pipe(
+      tap((res: any) => {
+        if (res.user) {
+          localStorage.setItem('currentUser', JSON.stringify(res.user));
+          this.currentUser.next(res.user);
+        }
+      })
+    );
   }
 
   // ================= CHECK LOGIN =================

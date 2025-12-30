@@ -3,23 +3,17 @@
 
 <header class="flex justify-between items-center mb-8">
   <div>
-    <h2 class="text-2xl font-bold text-slate-800">Admin Dashboard</h2>
-    <p class="text-slate-500">Welcome, {{ username }}. Overview of your store's performance today.</p>
+    <h2 class="text-2xl font-bold text-slate-800">{{ username }}</h2>
+    <p class="text-slate-500">Welcome, Dashboard. Overview of your store's performance today.</p>
   </div>
   <div class="flex gap-4 items-center">
     <button
-      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-lg shadow-blue-200"
-      (click)="logout()">
-      Logout
-    </button>
-    <button
+      (click)="openAddProductModal()"
       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium shadow-lg shadow-green-200">
       + Add New Product
     </button>
   </div>
 </header>
-
-
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <p class="text-sm text-slate-500 font-medium">Total Products</p>
@@ -82,4 +76,11 @@
       </table>
     </div>
   </main>
+
+  <!-- Add Product Modal -->
+  <app-add-product
+    *ngIf="showAddProductModal"
+    (close)="closeAddProductModal()"
+    (productAdded)="onProductAdded($event)">
+  </app-add-product>
 </div>

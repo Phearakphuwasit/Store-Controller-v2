@@ -1,9 +1,41 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NgIconComponent, provideIcons } from '@ng-icons/core';
+// Import the specific icons you used in your redesign
+import { 
+  heroXMark, 
+  heroPhoto, 
+  heroPlus, 
+  heroMagnifyingGlass, 
+  heroFolder, 
+  heroCheckCircle, 
+  heroArchiveBox, 
+  heroPencilSquare, 
+  heroTrash, 
+  heroAdjustmentsHorizontal 
+} from '@ng-icons/heroicons/outline';
 
 @Component({
   selector: 'app-categories',
-  template: `<h1 class="text-2xl font-bold">Categories</h1>
-             <p>Manage product categories here.</p>`,
-  styles: [``]
+  standalone: true,
+  imports: [CommonModule, NgIconComponent],
+  providers: [
+    provideIcons({ 
+      heroXMark, 
+      heroPhoto, 
+      heroPlus, 
+      heroMagnifyingGlass, 
+      heroFolder, 
+      heroCheckCircle, 
+      heroArchiveBox, 
+      heroPencilSquare, 
+      heroTrash, 
+      heroAdjustmentsHorizontal 
+    })
+  ],
+  templateUrl: './categories.component.html'
 })
-export class CategoriesComponent {}
+export class CategoriesComponent {
+  // Your logic here
+  categories: any[] = []; // Add this property
+}

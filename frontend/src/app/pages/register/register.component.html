@@ -80,6 +80,32 @@
         </select>
       </div>
 
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1.5 ml-1">Profile Picture</label>
+        <div class="relative">
+          <div class="flex items-center space-x-4">
+            <div class="relative">
+              <img [src]="previewUrl || 'https://ui-avatars.com/api/?name=' + registerForm.get('fullName')?.value + '&background=2563eb&color=fff'"
+                class="w-16 h-16 rounded-full border-2 border-slate-600 object-cover" alt="Profile Preview">
+              <button *ngIf="selectedFile" type="button" (click)="removeFile()"
+                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-red-600 transition-colors">
+                ×
+              </button>
+            </div>
+            <div class="flex-1">
+              <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput
+                class="hidden" id="profilePicture">
+              <label for="profilePicture"
+                class="inline-flex items-center px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg cursor-pointer transition-colors text-sm font-medium">
+                <ng-icon name="heroPhoto" class="mr-2"></ng-icon>
+                Choose Image
+              </label>
+              <p class="text-xs text-slate-400 mt-1">PNG, JPG up to 5MB</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="flex items-center px-1">
         <input type="checkbox" formControlName="terms"
           class="w-4 h-4 rounded border-slate-700 bg-white/5 text-purple-600 focus:ring-purple-500">

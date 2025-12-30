@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs");
 
 // ================= HELPER =================
 const generateToken = (user) => {
@@ -13,6 +15,8 @@ const generateToken = (user) => {
 // ================= REGISTER =================
 exports.register = async (req, res) => {
   try {
+    console.log('req.body:', req.body);
+    console.log('req.files:', req.files);
     const { fullName, email, password, role } = req.body;
 
     // 1️⃣ Validate input
@@ -37,12 +41,34 @@ exports.register = async (req, res) => {
     if (role === "manager") userRole = "manager";
     else if (role === "admin") userRole = "admin";
 
-    // 4️⃣ Create new user (password will be hashed in pre-save hook)
+    // 4️⃣ Handle profile picture
+    let profilePicture = null;
+    if (req.files && req.files.profilePicture) {
+      const file = req.files.profilePicture;
+      if (!file.mimetype.startsWith("image/")) {
+        return res.status(400).json({
+          success: false,
+          message: "Only image files are allowed",
+        });
+      }
+      const uploadDir = path.join(__dirname, "../uploads");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const filename = "profile-" + uniqueSuffix + path.extname(file.name);
+      const filepath = path.join(uploadDir, filename);
+      await file.mv(filepath);
+      profilePicture = `http://localhost:5000/uploads/${filename}`;
+    }
+
+    // 5️⃣ Create new user (password will be hashed in pre-save hook)
     const user = new User({
       fullName,
       email,
       password,
       role: userRole,
+      profilePicture,
     });
 
     await user.save();
@@ -135,6 +161,62 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching profile",
+    });
+  }
+};
+
+// ================= UPDATE PROFILE =================
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming auth middleware sets req.user
+    const { fullName, email } = req.body;
+
+    let updateData = {};
+    if (fullName) updateData.fullName = fullName;
+    if (email) updateData.email = email;
+
+    // Handle profile picture
+    if (req.files && req.files.profilePicture) {
+      const file = req.files.profilePicture;
+      if (!file.mimetype.startsWith("image/")) {
+        return res.status(400).json({
+          success: false,
+          message: "Only image files are allowed",
+        });
+      }
+      const uploadDir = path.join(__dirname, "../uploads");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const filename = "profile-" + uniqueSuffix + path.extname(file.name);
+      const filepath = path.join(uploadDir, filename);
+      await file.mv(filepath);
+      updateData.profilePicture = `http://localhost:5000/uploads/${filename}`;
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Exclude password
+    const { password: _, ...userData } = user.toObject();
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: userData,
+    });
+  } catch (err) {
+    console.error("UPDATE PROFILE ERROR:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message || "Error updating profile",
     });
   }
 };
