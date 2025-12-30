@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Store Controller Project
 
 This is a full-stack store management system built with:
@@ -22,6 +21,17 @@ This is a full-stack store management system built with:
 1. Clone the repository
    ```bash
    git clone https://github.com/Phearakphuwasit/Store-Controller-v2
-=======
-# Store-Controller-v2
->>>>>>> 86d6b4c33d8a0d2632fa8f046859660c016efa7d
+   ```
+
+## Connect with Me
+
+Follow me on social media for updates and more projects:
+
+- **GitHub**: [Phearakphuwasit](https://github.com/Phearakphuwasit)
+- **LinkedIn**: [Your LinkedIn Profile](https://www.linkedin.com/in/samloth-phearak-4683452a4/)
+- **Telegram**: [@your-handle](https://t.me/samlothphearak)
+- **Facebook**: [Your Facebook Page](https://www.facebook.com/share/17WRqyNfJu/?mibextid=wwXIfr)
+
+---
+
+⭐ **Star this repository** if you found it helpful!
