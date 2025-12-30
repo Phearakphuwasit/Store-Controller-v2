@@ -1,0 +1,5 @@
+<app-sidebar *ngIf="showSidebar"></app-sidebar>
+
+<main [class.md:ml-64]="showSidebar" class="min-h-screen transition-all duration-300">
+  <router-outlet></router-outlet>
+</main>

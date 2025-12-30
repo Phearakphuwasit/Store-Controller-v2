@@ -1,0 +1,12 @@
+<div class="p-6">
+  <h2 class="text-xl font-bold mb-4">Your Cart</h2>
+
+  <div *ngFor="let item of items" class="border p-3 mb-2">
+    {{ item.name }} - ${{ item.price }}
+  </div>
+
+  <button
+    class="bg-green-600 text-white px-4 py-2 mt-4 rounded">
+    Checkout
+  </button>
+</div>

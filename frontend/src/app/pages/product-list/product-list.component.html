@@ -1,0 +1,11 @@
+<div class="grid grid-cols-3 gap-6 p-6">
+  <div *ngFor="let p of products" class="border p-4 rounded shadow">
+    <h2 class="font-bold">{{ p.name }}</h2>
+    <p class="text-gray-600">${{ p.price }}</p>
+    <button
+      (click)="addToCart(p)"
+      class="bg-blue-500 text-white px-3 py-1 mt-2 rounded">
+      Add to Cart
+    </button>
+  </div>
+</div>

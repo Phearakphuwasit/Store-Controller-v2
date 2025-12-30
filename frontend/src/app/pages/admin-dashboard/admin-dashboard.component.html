@@ -1,0 +1,85 @@
+<div class="flex min-h-screen bg-slate-50">
+  <main class="flex-1 p-8">
+
+<header class="flex justify-between items-center mb-8">
+  <div>
+    <h2 class="text-2xl font-bold text-slate-800">Admin Dashboard</h2>
+    <p class="text-slate-500">Welcome, {{ username }}. Overview of your store's performance today.</p>
+  </div>
+  <div class="flex gap-4 items-center">
+    <button
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-lg shadow-blue-200"
+      (click)="logout()">
+      Logout
+    </button>
+    <button
+      class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium shadow-lg shadow-green-200">
+      + Add New Product
+    </button>
+  </div>
+</header>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-sm text-slate-500 font-medium">Total Products</p>
+        <h3 class="text-2xl font-bold text-slate-800">1,284</h3>
+        <span class="text-green-500 text-xs font-bold">↑ 12% from last month</span>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-sm text-slate-500 font-medium">Low Stock Items</p>
+        <h3 class="text-2xl font-bold text-red-600">12</h3>
+        <span class="text-slate-400 text-xs font-medium">Needs immediate attention</span>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-sm text-slate-500 font-medium">Out of Stock</p>
+        <h3 class="text-2xl font-bold text-slate-800">3</h3>
+        <span class="text-slate-400 text-xs font-medium">Last 7 days</span>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-sm text-slate-500 font-medium">Total Value</p>
+        <h3 class="text-2xl font-bold text-slate-800">$45,200</h3>
+        <span class="text-blue-500 text-xs font-bold">Estimated inventory value</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+        <h3 class="font-bold text-slate-800 text-lg">Inventory Status</h3>
+        <input type="text" placeholder="Search products..."
+          class="border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-64">
+      </div>
+      <table class="w-full text-left">
+        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold tracking-wider">
+          <tr>
+            <th class="px-6 py-4">Product Name</th>
+            <th class="px-6 py-4">Category</th>
+            <th class="px-6 py-4">Stock</th>
+            <th class="px-6 py-4">Price</th>
+            <th class="px-6 py-4">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-sm">
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4 font-semibold text-slate-800">Wireless Headset X1</td>
+            <td class="px-6 py-4">Electronics</td>
+            <td class="px-6 py-4">42</td>
+            <td class="px-6 py-4">$129.00</td>
+            <td class="px-6 py-4">
+              <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">In Stock</span>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4 font-semibold text-slate-800">Mechanical Keyboard</td>
+            <td class="px-6 py-4">Peripherals</td>
+            <td class="px-6 py-4 text-red-600 font-bold">5</td>
+            <td class="px-6 py-4">$89.00</td>
+            <td class="px-6 py-4">
+              <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">Low Stock</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>

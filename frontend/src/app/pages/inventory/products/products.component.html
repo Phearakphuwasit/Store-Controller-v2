@@ -1,0 +1,78 @@
+<div class="p-8 bg-slate-50 min-h-screen">
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Product Inventory</h1>
+      <p class="text-slate-500 mt-1">Manage, monitor and update your store stock levels.</p>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <button class="flex items-center space-x-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-slate-600 font-semibold hover:bg-slate-50 transition-all shadow-sm">
+        <ng-icon name="heroDocumentArrowDown" class="text-lg"></ng-icon>
+        <span>Export CSV</span>
+      </button>
+      <button class="flex items-center space-x-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+        <ng-icon name="heroPlus" class="text-lg"></ng-icon>
+        <span>Add Product</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-8 flex flex-col md:flex-row gap-4">
+    <div class="relative flex-1">
+      <ng-icon name="heroMagnifyingGlass" class="text-xl absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></ng-icon>
+      <input type="text" placeholder="Search by name, SKU or category..." 
+             class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-xl outline-none transition-all text-sm">
+    </div>
+    <select class="bg-slate-50 border-transparent rounded-xl px-4 py-2.5 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-blue-500">
+      <option>All Categories</option>
+      <option>Peripherals</option>
+      <option>Electronics</option>
+    </select>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div *ngFor="let product of products" class="bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl transition-all group">
+      
+      <div class="relative aspect-square overflow-hidden bg-slate-100">
+        <img [src]="product.image" [alt]="product.name" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+        <div class="absolute top-3 left-3">
+          <span [class]="'px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ' + getStatusClass(product.status)">
+            {{product.status}}
+          </span>
+        </div>
+      </div>
+
+      <div class="p-5">
+        <div class="flex justify-between items-start mb-1">
+          <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{{product.category}}</p>
+          <p class="text-xs text-slate-400 font-mono">{{product.sku}}</p>
+        </div>
+        <h3 class="font-bold text-slate-800 mb-4 truncate text-lg" [title]="product.name">{{product.name}}</h3>
+        
+        <div class="flex items-end justify-between border-t border-slate-50 pt-4">
+          <div>
+            <p class="text-xs text-slate-400 mb-1">Unit Price</p>
+            <p class="text-xl font-black text-slate-900">${{product.price | number:'1.2-2'}}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-slate-400 mb-1">Available Stock</p>
+            <p class="text-sm font-bold" [ngClass]="product.stock < 10 ? 'text-red-500' : 'text-slate-700'">
+              {{product.stock}} Units
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-5">
+          <button class="flex items-center justify-center space-x-1 py-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors text-xs font-bold">
+            <ng-icon name="heroAdjustmentsHorizontal" class="text-base"></ng-icon>
+            <span>Details</span>
+          </button>
+          <button class="flex items-center justify-center space-x-1 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all text-xs font-bold">
+            <ng-icon name="heroArrowPath" class="text-base"></ng-icon>
+            <span>Restock</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

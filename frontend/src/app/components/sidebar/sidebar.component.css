@@ -1,0 +1,33 @@
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(147, 197, 253, 0.5); /* light blue */
+  border-radius: 3px;
+}
+.custom-scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(147,197,253,0.5) transparent;
+}
+
+/* Hover & transition effects */
+a.group:hover {
+  transform: translateY(0px);
+}
+a.group {
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover svg {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Optional: smooth scroll inside sidebar */
+nav.flex-1 {
+  scroll-behavior: smooth;
+}
