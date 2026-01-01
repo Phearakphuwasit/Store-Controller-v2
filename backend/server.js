@@ -84,7 +84,7 @@ app.use((err, req, res, next) => {
     message: err.message || "Server Error",
   });
 });
-
+console.log("New Update Applied Successfully");
 // ----------------------
 // Start Server
 // ----------------------
