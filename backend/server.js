@@ -32,8 +32,16 @@ app.use(helmet({
 }));
 app.use(cors());
 app.use(morgan("dev"));
-app.use(express.json());
 
+// REQUIRED: These must come BEFORE routes to parse the incoming data
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
+
+// REQUIRED: You must initialize the file upload middleware you imported
+app.use(fileUpload({
+  createParentPath: true,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+}));
 // 2. Optimized Static Folder Serving
 app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
   setHeaders: (res, filePath) => {
