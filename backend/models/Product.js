@@ -12,22 +12,21 @@ const productSchema = new mongoose.Schema({
   },
   price: { 
     type: Number, 
-    default: 0,
+    required: [true, "Price is required"],
     min: [0, "Price cannot be negative"]
   },
   image: { 
     type: String, 
-    default: "/assets/images/default-product.png"
+    default: "uploads/default-product.png" // Path relative to server root
   },
   category: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Category', 
-    required: [true, "Category is required"] 
+    type: String, // Changed from ObjectId to String to match your Angular Form
+    required: [true, "Category is required"],
+    trim: true
   },
   stock: { 
     type: Number, 
     min: [0, "Stock cannot be negative"], 
-    max: [255, "Stock cannot exceed 255"],
     default: 0
   },
   status: { 
@@ -42,14 +41,29 @@ const productSchema = new mongoose.Schema({
     trim: true 
   }
 }, { 
-  timestamps: true
+  timestamps: true 
 });
 
-// Optional: create slug automatically before saving
+// AUTO-GENERATE SLUG & UPDATE STATUS
 productSchema.pre('save', function(next) {
-  if (!this.slug) {
-    this.slug = this.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+  // Generate Slug
+  if (this.isModified('name')) {
+    this.slug = this.name
+      .toLowerCase()
+      .split(' ')
+      .join('-')
+      .replace(/[^\w-]+/g, '');
   }
+
+  // Auto-set status based on stock count
+  if (this.stock <= 0) {
+    this.status = 'Out of Stock';
+  } else if (this.stock <= 5) {
+    this.status = 'Low Stock';
+  } else {
+    this.status = 'In Stock';
+  }
+
   next();
 });
 

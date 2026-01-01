@@ -17,51 +17,37 @@ const generateToken = (user) => {
 // ================= REGISTER =================
 exports.register = async (req, res) => {
   try {
-    console.log('req.body:', req.body);
-    console.log('req.files:', req.files);
     const { fullName, email, password, role } = req.body;
 
-    // 1️⃣ Validate input
     if (!fullName || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    // 2️⃣ Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "Email already exists",
-      });
+      return res.status(400).json({ success: false, message: "Email already exists" });
     }
 
-    // 3️⃣ Map role correctly
-    let userRole = "user"; // default
-    if (role === "manager") userRole = "manager";
-    else if (role === "admin") userRole = "admin";
+    // Map role correctly (Now including 'staff')
+    let userRole = "user"; 
+    const validRoles = ["user", "admin", "manager", "staff"];
+    if (validRoles.includes(role)) {
+      userRole = role;
+    }
 
-    // 4️⃣ Handle profile picture
+    // Handle profile picture
     let profilePicture = null;
     if (req.files && req.files.profilePicture) {
       const file = req.files.profilePicture;
-      if (!file.mimetype.startsWith("image/")) {
-        return res.status(400).json({
-          success: false,
-          message: "Only image files are allowed",
-        });
-      }
       const uploadDir = path.join(__dirname, "../uploads");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const filename = "profile-" + uniqueSuffix + path.extname(file.name);
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+      const filename = `profile-${Date.now()}${path.extname(file.name)}`;
       const filepath = path.join(uploadDir, filename);
       await file.mv(filepath);
-      profilePicture = `http://54.253.18.25:5000/uploads/${filename}`;
+      
+      // Use relative path for database, construct full URL in frontend or via getter
+      profilePicture = `uploads/${filename}`;
     }
 
     const user = new User({
@@ -73,87 +59,54 @@ exports.register = async (req, res) => {
     });
 
     await user.save();
-
-    // 5️⃣ Generate JWT
     const token = generateToken(user);
-
-    // Exclude password from response
     const { password: _, ...userData } = user.toObject();
 
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      user: userData,
-      token,
-    });
+    res.status(201).json({ success: true, user: userData, token });
   } catch (err) {
-    console.error("REGISTER ERROR:", err);
-    res.status(500).json({
-      success: false,
-      message: err.message || "Register failed",
-    });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
 // ================= LOGIN =================
 exports.login = async (req, res) => {
   try {
-    const { email, password, latitude, longitude } = req.body;
+    const { email, password, lat, lng } = req.body; // Changed from latitude/longitude
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
+    const user = await User.findOne({ email }).select("+password"); // Need +password because we used select:false
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
-    }
-
-    // ✅ FIXED LOCATION HANDLING
-    if (Number.isFinite(+latitude) && Number.isFinite(+longitude)) {
-      let country = "", city = "";
-
+    // Geocoding Logic
+    if (lat && lng) {
       try {
         const response = await axios.get("https://nominatim.openstreetmap.org/reverse", {
-          params: { lat: latitude, lon: longitude, format: "json" },
-          headers: { "User-Agent": "YourAppName/1.0" }, // REQUIRED by OSM
+          params: { lat, lon: lng, format: "json" },
+          headers: { "User-Agent": "StoreBackend/1.0" },
         });
 
-        const address = response.data.address || {};
-        country = address.country || "";
-        city = address.city || address.town || address.village || "";
+        const { city, town, village, country } = response.data.address || {};
+        user.locations.push({
+          lat: Number(lat),
+          lng: Number(lng),
+          city: city || town || village || "Unknown City",
+          country: country || "Unknown Country",
+          timestamp: new Date()
+        });
+        await user.save();
       } catch (err) {
-        console.warn("Reverse geocode failed:", err.message);
+        console.warn("Geocoding failed during login");
       }
-
-      if (!user.locations) user.locations = [];
-
-      user.locations.push({
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        country,
-        city,
-      });
-
-      await user.save();
     }
 
     const token = generateToken(user);
     const { password: _, ...userData } = user.toObject();
-
-    res.json({
-      success: true,
-      message: "Login successful",
-      user: userData,
-      token,
-    });
+    res.json({ success: true, user: userData, token });
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
     res.status(500).json({ success: false, message: "Login failed" });
   }
 };
-
 // ================= PROFILE =================
 exports.getProfile = async (req, res) => {
   try {
@@ -245,5 +198,34 @@ exports.updateProfile = async (req, res) => {
       success: false,
       message: err.message || "Error updating profile",
     });
+  }
+};
+
+// ================= UPDATE LOCATION (Standalone) =================
+exports.updateLocation = async (req, res) => {
+  try {
+    const { userId, lat, lng, city, country } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $push: {
+          locations: {
+            lat: Number(lat),
+            lng: Number(lng),
+            city: city || "Unknown",
+            country: country || "Unknown",
+            timestamp: new Date()
+          }
+        }
+      },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ success: true, location: { city, country } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

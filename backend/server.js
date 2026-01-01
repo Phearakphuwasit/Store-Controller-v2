@@ -30,12 +30,15 @@ connectDB();
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-app.use(cors());
+const cors = require('cors');
+app.use(cors({
+  origin: '*', // For testing, allow everything
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(morgan("dev"));
-
-// REQUIRED: These must come BEFORE routes to parse the incoming data
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // REQUIRED: You must initialize the file upload middleware you imported
 app.use(fileUpload({

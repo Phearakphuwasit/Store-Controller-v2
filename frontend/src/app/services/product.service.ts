@@ -1,13 +1,16 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 
 export interface Product {
-  _id: string;      
+  _id: string;
   name: string;
-  category: string;
-  stock: number;
+  category: any;
   price: number;
+  stock: number;
+  description?: string;
+  image?: string; // Added image path
+  status?: string;
 }
 
 export interface ProductStats {
@@ -17,34 +20,45 @@ export interface ProductStats {
   totalValue: number;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class ProductService {
-  private api = 'http://54.253.18.25:5000/api/products';
+  private apiUrl = 'http://54.253.18.25:5000/api/products';
 
   constructor(private http: HttpClient) {}
 
-  // 1. Fetch all products
+  // ✅ GET ALL PRODUCTS
   getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.api);
+    return this.http.get<{success: boolean, products: Product[]}>(this.apiUrl).pipe(
+      map(res => res.products || [])
+    );
   }
 
-  // 2. Fetch dashboard statistics
+  // ✅ GET STATS
   getStats(): Observable<ProductStats> {
-    return this.http.get<ProductStats>(`${this.api}/stats`);
+    return this.http.get<{success: boolean, stats: any}>(`${this.apiUrl}/stats`).pipe(
+      map(res => ({
+        totalProducts: res.stats?.totalProducts || 0,
+        lowStock: res.stats?.lowStockItems || 0,
+        outOfStock: res.stats?.outOfStock || 0,
+        totalValue: res.stats?.totalValue || 0
+      }))
+    );
   }
 
-  // 3. ADDED: Delete a product by ID
+  // ✅ CREATE PRODUCT (Using FormData for Image Upload)
+  createProduct(formData: FormData): Observable<any> {
+    return this.http.post(this.apiUrl, formData);
+  }
+
+  // ✅ UPDATE PRODUCT
+  updateProduct(id: string, formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, formData);
+  }
+
+  // ✅ DELETE PRODUCT
   deleteProduct(id: string): Observable<any> {
-    return this.http.delete(`${this.api}/${id}`);
-  }
-
-  // 4. ADDED: Create a new product
-  addProduct(product: Partial<Product>): Observable<Product> {
-    return this.http.post<Product>(this.api, product);
-  }
-
-  // 5. ADDED: Update an existing product (For your Edit button)
-  updateProduct(id: string, product: Partial<Product>): Observable<Product> {
-    return this.http.put<Product>(`${this.api}/${id}`, product);
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }
