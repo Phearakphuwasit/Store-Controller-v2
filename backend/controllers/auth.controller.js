@@ -2,6 +2,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
+const axios = require("axios");
 
 // ================= HELPER =================
 const generateToken = (user) => {
@@ -62,7 +63,6 @@ exports.register = async (req, res) => {
       profilePicture = `http://54.253.18.25:5000/uploads/${filename}`;
     }
 
-    // 5️⃣ Create new user (password will be hashed in pre-save hook)
     const user = new User({
       fullName,
       email,
@@ -97,7 +97,7 @@ exports.register = async (req, res) => {
 // ================= LOGIN =================
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, latitude, longitude } = req.body;
 
     // 1️⃣ Find user
     const user = await User.findOne({ email });
@@ -117,10 +117,34 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 3️⃣ Generate token
+    // 3️⃣ Optional: track location if provided
+    if (latitude && longitude) {
+      // Use OpenStreetMap Nominatim API to get country/city
+      let country = "", city = "";
+      try {
+        const response = await axios.get("https://nominatim.openstreetmap.org/reverse", {
+          params: {
+            lat: latitude,
+            lon: longitude,
+            format: "json"
+          }
+        });
+        const address = response.data.address;
+        country = address.country || "";
+        city = address.city || address.town || address.village || "";
+      } catch (err) {
+        console.warn("Could not fetch location from coordinates", err.message);
+      }
+
+      // Add to user's locations array
+      user.locations.push({ latitude, longitude, country, city });
+      await user.save();
+    }
+
+    // 4️⃣ Generate token
     const token = generateToken(user);
 
-    // Exclude password from response
+    // 5️⃣ Exclude password from response
     const { password: _, ...userData } = user.toObject();
 
     res.status(200).json({
@@ -137,7 +161,6 @@ exports.login = async (req, res) => {
     });
   }
 };
-
 // ================= PROFILE =================
 exports.getProfile = async (req, res) => {
   try {
