@@ -1,76 +1,96 @@
-<aside class="bg-slate-900 w-72 min-h-screen fixed top-0 left-0 shadow-2xl hidden md:flex flex-col z-50">
+<aside
+  class="bg-slate-900 w-72 min-h-screen fixed top-0 left-0 shadow-2xl hidden md:flex flex-col z-50 border-r border-white/5">
 
-  <div class="p-8 flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <div class="bg-blue-500 p-2 rounded-xl shadow-lg shadow-blue-500/30">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-        </svg>
-      </div>
-      <span class="text-xl font-bold text-white tracking-tight">Store<span class="text-blue-400"> Controller</span></span>
+  <div class="p-8 flex items-center space-x-3">
+    <div class="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-600/30">
+      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+      </svg>
     </div>
+    <span class="text-xl font-black text-white tracking-tight italic">STORE<span
+        class="text-blue-500">CTRL</span></span>
   </div>
 
-  <nav class="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar">
-    
+  <nav class="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar space-y-8">
+
     <div>
-      <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Inventory</p>
-      <ul class="space-y-2">
-        <li *ngFor="let item of inventoryMenu">
-          <a [routerLink]="item.path" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-             class="group flex items-center justify-between px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all">
-            <div class="flex items-center">
-              <span class="mr-3" [innerHTML]="item.icon"></span>
-              <span class="font-medium">{{item.label}}</span>
-            </div>
-            <span *ngIf="item.badge" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
-              {{item.badge}}
-            </span>
-          </a>
-        </li>
+      <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Inventory Management</p>
+      <ul class="space-y-1">
+        <ng-container *ngFor="let item of inventoryMenu">
+          <li *ngIf="canAccess(item)">
+            <a [routerLink]="item.path"
+              routerLinkActive="bg-blue-600 text-white shadow-xl shadow-blue-600/20 active-link"
+              class="group flex items-center justify-between px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200">
+              <div class="flex items-center">
+                <span class="mr-3 opacity-70 group-hover:opacity-100" [innerHTML]="getSafeIcon(item.icon)"></span>
+                <span class="font-bold text-sm">{{item.label}}</span>
+              </div>
+              <span *ngIf="item.badge"
+                class="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-lg font-black">
+                {{item.badge}}
+              </span>
+            </a>
+          </li>
+        </ng-container>
       </ul>
     </div>
 
     <div>
-      <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Logistics</p>
-      <ul class="space-y-2">
-        <li *ngFor="let item of logisticsMenu">
-          <a [routerLink]="item.path" routerLinkActive="bg-blue-600 text-white"
-             class="flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all">
-            <span class="mr-3" [innerHTML]="item.icon"></span>
-            <span class="font-medium">{{item.label}}</span>
-          </a>
-        </li>
+      <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Logistics</p>
+      <ul class="space-y-1">
+        <ng-container *ngFor="let item of logisticsMenu">
+          <li *ngIf="canAccess(item)">
+            <a [routerLink]="item.path" routerLinkActive="bg-blue-600 text-white shadow-lg"
+              class="flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+              <span class="mr-3 opacity-70" [innerHTML]="getSafeIcon(item.icon)"></span>
+              <span class="font-bold text-sm">{{item.label}}</span>
+            </a>
+          </li>
+        </ng-container>
       </ul>
     </div>
 
-    <div>
-      <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Reports</p>
-      <ul class="space-y-2">
-        <li *ngFor="let item of reportMenu">
-          <a [routerLink]="item.path" routerLinkActive="bg-blue-600 text-white"
-             class="flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all">
-            <span class="mr-3" [innerHTML]="item.icon"></span>
-            <span class="font-medium">{{item.label}}</span>
-          </a>
-        </li>
-      </ul>
-    </div>
   </nav>
 
-  <div class="p-4 border-t border-slate-800">
-    <div class="bg-slate-800/40 rounded-2xl p-4">
-       <div class="flex items-center space-x-3 mb-3">
-          <img [src]="currentUser?.profilePicture || getAvatarUrl()" class="w-10 h-10 rounded-full border border-slate-700 object-cover" [alt]="currentUser?.fullName + ' Profile'" (error)="onImageError($event)">
-          <div class="overflow-hidden cursor-pointer" routerLink="/profile">
-            <p class="text-sm font-bold text-white truncate hover:text-blue-300 transition-colors">{{ currentUser?.fullName || 'User' }}</p>
-            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-tight">{{ currentUser?.role || 'Role' }}</p>
+  <div class="p-4 border-t border-white/5 bg-slate-900/50 backdrop-blur">
+    <div class="bg-white/5 rounded-[2rem] p-4 border border-white/5 shadow-inner">
+
+      <div routerLink="/profile"
+        class="flex items-center space-x-3 mb-4 cursor-pointer group/user transition-all hover:translate-x-1"
+        title="View Profile">
+
+        <div class="relative">
+          <img [src]="getProfilePicture()"
+            class="w-12 h-12 rounded-2xl border-2 border-slate-700 object-cover shadow-lg group-hover/user:border-blue-500 transition-colors"
+            [alt]="currentUser?.fullName" (error)="onImageError($event)">
+          <span
+            class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-slate-900 rounded-full"></span>
+        </div>
+
+        <div class="overflow-hidden">
+          <p class="text-sm font-black text-white truncate group-hover/user:text-blue-400 transition-colors">
+            {{ currentUser?.fullName || 'Guest User' }}
+          </p>
+          <div class="flex items-center gap-1">
+            <p class="text-[10px] text-blue-500 font-black uppercase tracking-widest">
+              {{ currentUser?.role || 'Viewer' }}
+            </p>
+            <svg class="w-2.5 h-2.5 text-blue-500 opacity-0 group-hover/user:opacity-100 transition-opacity" fill="none"
+              stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-width="3" d="M9 5l7 7-7 7"></path>
+            </svg>
           </div>
-       </div>
-       <button (click)="logout()" class="w-full flex items-center justify-center space-x-2 text-xs text-slate-400 hover:text-red-400 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-          <span>Logout System</span>
-       </button>
+        </div>
+      </div>
+
+      <button (click)="logout()"
+        class="w-full py-3 flex items-center justify-center gap-2 text-xs font-bold text-slate-400 bg-white/5 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all border border-transparent hover:border-red-500/20">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+        Sign Out
+      </button>
     </div>
   </div>
 </aside>

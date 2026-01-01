@@ -1,34 +1,29 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+
 const locationSchema = new mongoose.Schema({
-  latitude: { type: Number, required: true },
-  longitude: { type: Number, required: true },
+  latitude: { type: Number },
+  longitude: { type: Number },
   country: { type: String, default: "" },
   city: { type: String, default: "" },
-  timestamp: { type: Date, default: Date.now },
 });
 
-// Define the User schema
 const UserSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
-      required: [true, "Name is required"],
+      required: true,
       trim: true,
-      minlength: 2,
-      maxlength: 50,
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: true,
       unique: true,
-      trim: true,
       lowercase: true,
-      match: [/.+\@.+\..+/, "Please fill a valid email address"],
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: true,
       minlength: 6,
     },
     role: {
@@ -39,18 +34,10 @@ const UserSchema = new mongoose.Schema(
     profilePicture: {
       type: String,
       default: null,
-      validate: {
-        validator: function (v) {
-          return !v || /\.(png|jpe?g|gif|webp|svg)$/i.test(v);
-        },
-        message: (props) => `${props.value} is not a valid image file`,
-      },
     },
-    locations: [locationSchema],
+    location: locationSchema,
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 // Hash password before saving

@@ -2,6 +2,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
+const mongoose = require("mongoose");
 const axios = require("axios");
 
 // ================= HELPER =================
@@ -99,55 +100,49 @@ exports.login = async (req, res) => {
   try {
     const { email, password, latitude, longitude } = req.body;
 
-    // 1️⃣ Find user
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    // 2️⃣ Compare password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    // 3️⃣ Optional: track location if provided
-    if (latitude && longitude) {
-      // Use OpenStreetMap Nominatim API to get country/city
+    // ✅ FIXED LOCATION HANDLING
+    if (Number.isFinite(+latitude) && Number.isFinite(+longitude)) {
       let country = "", city = "";
+
       try {
         const response = await axios.get("https://nominatim.openstreetmap.org/reverse", {
-          params: {
-            lat: latitude,
-            lon: longitude,
-            format: "json"
-          }
+          params: { lat: latitude, lon: longitude, format: "json" },
+          headers: { "User-Agent": "YourAppName/1.0" }, // REQUIRED by OSM
         });
-        const address = response.data.address;
+
+        const address = response.data.address || {};
         country = address.country || "";
         city = address.city || address.town || address.village || "";
       } catch (err) {
-        console.warn("Could not fetch location from coordinates", err.message);
+        console.warn("Reverse geocode failed:", err.message);
       }
 
-      // Add to user's locations array
-      user.locations.push({ latitude, longitude, country, city });
+      if (!user.locations) user.locations = [];
+
+      user.locations.push({
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        country,
+        city,
+      });
+
       await user.save();
     }
 
-    // 4️⃣ Generate token
     const token = generateToken(user);
-
-    // 5️⃣ Exclude password from response
     const { password: _, ...userData } = user.toObject();
 
-    res.status(200).json({
+    res.json({
       success: true,
       message: "Login successful",
       user: userData,
@@ -155,16 +150,26 @@ exports.login = async (req, res) => {
     });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-    res.status(500).json({
-      success: false,
-      message: err.message || "Login failed",
-    });
+    res.status(500).json({ success: false, message: "Login failed" });
   }
 };
+
 // ================= PROFILE =================
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const { id } = req.params;
+
+    // 1️⃣ Validate if the ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid User ID format",
+      });
+    }
+
+    // 2️⃣ Query the user
+    const user = await User.findById(id);
+    
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -172,7 +177,7 @@ exports.getProfile = async (req, res) => {
       });
     }
 
-    // Exclude password
+    // 3️⃣ Exclude password
     const { password: _, ...userData } = user.toObject();
 
     res.json({
@@ -187,7 +192,6 @@ exports.getProfile = async (req, res) => {
     });
   }
 };
-
 // ================= UPDATE PROFILE =================
 exports.updateProfile = async (req, res) => {
   try {

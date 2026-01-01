@@ -8,7 +8,7 @@
           <div
             class="w-16 h-16 rounded-3xl overflow-hidden ring-4 ring-white shadow-xl border border-slate-200 transition-transform group-hover:scale-105">
             <img
-              [src]="currentUser?.profilePicture || 'https://ui-avatars.com/api/?name=' + username + '&background=6366f1&color=fff'"
+              [src]="currentUser.profilePicture || 'https://ui-avatars.com/api/?name=' + username + '&background=6366f1&color=fff'"
               class="w-full h-full object-cover" [alt]="username">
           </div>
           <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-[#F8FAFC] rounded-full"></div>
@@ -21,10 +21,11 @@
               <svg class="w-4 h-4 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" />
               </svg>
-              {{ currentUser?.location?.city || 'Unknown' }}
+              {{ currentUser.location?.city }},
+              {{ currentUser.location?.country }}
             </span>
             <span class="text-slate-300">|</span>
-            <span class="uppercase tracking-widest text-[10px] text-indigo-600 font-black">{{ currentUser?.role ||
+            <span class="uppercase tracking-widest text-[10px] text-indigo-600 font-black">{{ currentUser.role ||
               'Unknown' }}</span>
           </div>
         </div>

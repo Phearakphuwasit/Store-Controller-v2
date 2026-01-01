@@ -27,18 +27,20 @@ connectDB();
 // ----------------------
 // Middleware
 // ----------------------
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors());
-app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(fileUpload({
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  abortOnLimit: true,
-}));
 
-// Serve uploaded images
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// 2. Optimized Static Folder Serving
+app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
+  setHeaders: (res, filePath) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin"); // <--- Add this line
+  },
+}));
 app.use("/assets/images", express.static(path.join(__dirname, "assets/images")));
 
 // ----------------------

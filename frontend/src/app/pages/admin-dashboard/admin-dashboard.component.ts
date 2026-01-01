@@ -142,21 +142,39 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     // Implementation for edit modal goes here
   }
 
-  fetchProfile(userId: string) {
-    if (!userId) return; // Guard clause
+  fetchProfile(userId: string): void {
+    if (!userId) return;
 
     this.http.get<any>(`http://54.253.18.25:5000/api/auth/${userId}`).subscribe({
       next: (res) => {
-        if (res.success && res.user) {
-          // Spread the response to ensure we maintain the object structure
+        if (res?.success && res?.user) {
+          const latestLocation =
+            res.user.locations && res.user.locations.length > 0
+              ? res.user.locations[res.user.locations.length - 1]
+              : null;
+
           this.currentUser = {
             ...res.user,
-            location: res.user.location || {},
+
+            // ✅ Fix profile picture path
+            profilePicture: res.user.profilePicture
+              ? `http://54.253.18.25:5000/${res.user.profilePicture}`
+              : 'assets/default-avatar.png',
+
+            // ✅ Role fallback
+            role: res.user.role || 'user',
+
+            // ✅ Map locations[] → location
+            location: {
+              city: latestLocation?.city || 'Unknown',
+              country: latestLocation?.country || 'Unknown',
+            },
           };
-          console.log('Profile Sync Complete:', this.currentUser);
+
+          console.log('Profile loaded:', this.currentUser);
         }
       },
-      error: (err) => console.error('API Error:', err),
+      error: (err) => console.error('Profile API Error:', err),
     });
   }
 }

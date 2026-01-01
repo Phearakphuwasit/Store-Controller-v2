@@ -1,88 +1,97 @@
-<div class="min-h-screen bg-slate-50/50 p-6 md:p-10">
-  <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Product Categories</h1>
-      <p class="text-slate-500 text-sm">Organize and manage your product hierarchy.</p>
+<div class="min-h-screen bg-[#f8fafc] p-4 md:p-8 lg:p-12 font-sans antialiased">
+  
+  <header class="max-w-7xl mx-auto mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="space-y-1">
+      <nav class="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">
+        <span>Inventory</span>
+        <span class="text-slate-300">/</span>
+        <span class="text-slate-400">Categories</span>
+      </nav>
+      <h1 class="text-4xl font-black text-slate-900 tracking-tight">Product Architecture</h1>
+      <p class="text-slate-500 font-medium">Define the structural hierarchy of your store inventory.</p>
     </div>
-    <button 
-      class="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-all active:scale-95">
-      <ng-icon name="heroPlus" size="20" class="mr-2"></ng-icon>
-      New Category
-    </button>
+    
+    <div class="flex items-center gap-3">
+      <button class="group relative inline-flex items-center justify-center px-6 py-3.5 bg-slate-900 text-white font-bold rounded-2xl overflow-hidden transition-all hover:pr-12 active:scale-95 shadow-xl shadow-slate-200">
+        <span class="transition-all group-hover:-translate-x-2">New Category</span>
+        <ng-icon name="heroPlus" size="20" class="absolute right-4 opacity-0 transition-all group-hover:opacity-100"></ng-icon>
+      </button>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+    <div class="md:col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] p-8 text-white shadow-2xl shadow-blue-200 flex justify-between items-center relative overflow-hidden">
+        <div class="z-10">
+            <p class="text-blue-100 text-sm font-bold uppercase tracking-wider mb-1">Live Inventory Coverage</p>
+            <p class="text-5xl font-black">1,240 <span class="text-xl font-medium opacity-60">SKUs</span></p>
+        </div>
+        <div class="absolute -right-4 -bottom-4 opacity-10">
+            <ng-icon name="heroCircleStack" size="140"></ng-icon>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col justify-center">
+        <p class="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">Total Taxonomies</p>
+        <p class="text-4xl font-black text-slate-900">12</p>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col justify-center">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <p class="text-slate-400 text-xs font-black uppercase tracking-widest">Unmapped</p>
+        </div>
+        <p class="text-4xl font-black text-slate-900">02</p>
+    </div>
   </div>
 
-  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-      <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-        <ng-icon name="heroFolder" size="24"></ng-icon>
-      </div>
-      <div>
-        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Categories</p>
-        <p class="text-2xl font-bold text-slate-900">12</p>
-      </div>
-    </div>
-    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-      <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-        <ng-icon name="heroCheckCircle" size="24"></ng-icon>
-      </div>
-      <div>
-        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Active Items</p>
-        <p class="text-2xl font-bold text-slate-900">1,240</p>
-      </div>
-    </div>
-    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-      <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-        <ng-icon name="heroArchiveBox" size="24"></ng-icon>
-      </div>
-      <div>
-        <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Empty</p>
-        <p class="text-2xl font-bold text-slate-900">2</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="max-w-7xl mx-auto mb-6 flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-    <div class="relative w-full max-w-md">
-      <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-        <ng-icon name="heroMagnifyingGlass" size="18"></ng-icon>
+  <div class="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row gap-4 items-center">
+    <div class="relative w-full">
+      <span class="absolute inset-y-0 left-5 flex items-center text-slate-400">
+        <ng-icon name="heroMagnifyingGlass" size="20"></ng-icon>
       </span>
       <input 
         type="text" 
-        placeholder="Search categories..." 
-        class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+        placeholder="Search by category name, tag, or SKU count..." 
+        class="w-full pl-14 pr-6 py-5 bg-white border border-slate-100 rounded-[2rem] shadow-sm focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 outline-none transition-all font-medium placeholder:text-slate-300">
     </div>
-    <div class="flex items-center space-x-2">
-      <button class="p-2 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200">
-        <ng-icon name="heroAdjustmentsHorizontal" size="20"></ng-icon>
-      </button>
-    </div>
+    <button class="h-16 px-6 bg-white border border-slate-100 rounded-[2rem] text-slate-400 hover:text-blue-600 transition-all shadow-sm">
+        <ng-icon name="heroAdjustmentsHorizontal" size="24"></ng-icon>
+    </button>
   </div>
 
-  <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-    <div *ngFor="let cat of categories" class="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300">
-      <div class="p-6">
-        <div class="flex items-start justify-between mb-4">
-          <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-            <ng-icon [name]="cat.icon || 'heroTag'" size="24"></ng-icon>
-          </div>
-          <div class="flex space-x-1">
-            <button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all">
-              <ng-icon name="heroPencilSquare" size="18"></ng-icon>
-            </button>
-            <button class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all">
-              <ng-icon name="heroTrash" size="18"></ng-icon>
-            </button>
-          </div>
+  <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <div *ngFor="let cat of categories" 
+         class="group relative bg-white rounded-[3rem] border border-slate-100 p-8 transition-all duration-500 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.08)] hover:-translate-y-2">
+      
+      <div class="absolute top-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
+        <button class="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg">
+            <ng-icon name="heroPencilSquare" size="18"></ng-icon>
+        </button>
+        <button class="w-10 h-10 bg-white border border-slate-100 text-rose-500 rounded-full flex items-center justify-center hover:bg-rose-50 transition-colors shadow-lg">
+            <ng-icon name="heroTrash" size="18"></ng-icon>
+        </button>
+      </div>
+
+      <div class="mb-8">
+        <div class="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-6 transition-all duration-500">
+          <ng-icon [name]="cat.icon || 'heroTag'" size="32"></ng-icon>
         </div>
-        
-        <h3 class="text-lg font-bold text-slate-800 mb-1 capitalize">{{ cat.name }}</h3>
-        <p class="text-sm text-slate-500 line-clamp-2 mb-4">{{ cat.description }}</p>
-        
-        <div class="flex items-center justify-between pt-4 border-t border-slate-50">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Products</span>
-          <span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-full group-hover:bg-blue-600 group-hover:text-white transition-colors">
-            {{ cat.productCount }} Items
-          </span>
+      </div>
+      
+      <div class="space-y-2 mb-8">
+        <h3 class="text-2xl font-black text-slate-900 leading-tight">{{ cat.name }}</h3>
+        <p class="text-slate-500 text-sm font-medium leading-relaxed line-clamp-2">
+          {{ cat.description || 'No description provided for this structural segment.' }}
+        </p>
+      </div>
+      
+      <div class="pt-6 border-t border-slate-50 flex items-center justify-between">
+        <div class="flex flex-col">
+            <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">Inventory Volume</span>
+            <span class="text-lg font-black text-slate-900">{{ cat.productCount }} <span class="text-sm font-medium opacity-40">Items</span></span>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+            <ng-icon name="heroChevronRight" class="text-slate-300 group-hover:text-blue-600 transition-colors"></ng-icon>
         </div>
       </div>
     </div>

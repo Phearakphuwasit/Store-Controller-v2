@@ -5,12 +5,16 @@ const {
   getProductById,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getProductStats // Ensure this is imported from your controller
 } = require("../controllers/product.controller");
 
-// CRUD
+// 1. Specific Routes (STRICT)
 router.get("/", getProducts);
-router.get("/:id", getProductById);
+router.get("/stats", getProductStats); // ✅ Move this ABOVE /:id
+
+// 2. Dynamic ID Routes (GENERIC)
+router.get("/:id", getProductById); // ⚠️ This will now ignore the word "stats"
 router.post("/", createProduct);
 router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
