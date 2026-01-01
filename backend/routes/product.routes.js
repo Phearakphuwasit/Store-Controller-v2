@@ -6,7 +6,7 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
-  getProductStats // Ensure this is imported from your controller
+  getProductStats
 } = require("../controllers/product.controller");
 
 // 1. Specific Routes (STRICT)

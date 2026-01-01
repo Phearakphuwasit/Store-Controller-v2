@@ -1,5 +1,29 @@
 const Product = require("../models/Product");
 
+// ================= NEW: GET PRODUCT STATS =================
+exports.getProductStats = async (req, res) => {
+  try {
+    // This calculates the data for your Angular Dashboard cards
+    const totalProducts = await Product.countDocuments();
+    
+    // Example: Calculate total stock value or low stock items
+    const lowStockThreshold = 10;
+    const lowStockItems = await Product.countDocuments({ stock: { $lt: lowStockThreshold } });
+
+    res.json({
+      success: true,
+      stats: {
+        totalProducts,
+        lowStockItems,
+        timestamp: new Date()
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ================= EXISTING CODE =================
 // Get all products
 exports.getProducts = async (req, res) => {
   try {
@@ -15,9 +39,7 @@ exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate("category");
     if (!product)
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
+      return res.status(404).json({ success: false, message: "Product not found" });
     res.json({ success: true, product });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
