@@ -59,7 +59,7 @@ exports.register = async (req, res) => {
       const filename = "profile-" + uniqueSuffix + path.extname(file.name);
       const filepath = path.join(uploadDir, filename);
       await file.mv(filepath);
-      profilePicture = `http://localhost:5000/uploads/${filename}`;
+      profilePicture = `http://54.253.18.25:5000/uploads/${filename}`;
     }
 
     // 5️⃣ Create new user (password will be hashed in pre-save hook)
@@ -192,7 +192,7 @@ exports.updateProfile = async (req, res) => {
       const filename = "profile-" + uniqueSuffix + path.extname(file.name);
       const filepath = path.join(uploadDir, filename);
       await file.mv(filepath);
-      updateData.profilePicture = `http://localhost:5000/uploads/${filename}`;
+      updateData.profilePicture = `http://54.253.18.25:5000/uploads/${filename}`;
     }
 
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true });

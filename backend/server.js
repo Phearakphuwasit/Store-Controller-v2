@@ -39,6 +39,14 @@ app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/assets/images", express.static(path.join(__dirname, "assets/images")));
 
+// Serve Angular frontend
+app.use(express.static(path.join(__dirname, '../frontend/dist/store_controller')));
+
+// Handle Angular routing, return all requests to Angular index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/store_controller/index.html'));
+});
+
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
@@ -72,9 +80,10 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log("======================================");
   console.log(`🚀 Store Controller Backend is running on port ${PORT}`);
-  console.log(`📡 API available at: http://localhost:${PORT}/api`);
+  console.log(`📡 API available at: http://0.0.0.0:${PORT}/api`);
+  console.log(`🌐 Frontend served at: http://0.0.0.0:${PORT}`);
   console.log("======================================");
 });
