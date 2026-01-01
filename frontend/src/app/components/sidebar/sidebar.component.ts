@@ -108,12 +108,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   getProfilePicture(): string {
-    if (this.currentUser?.profilePicture) {
-      return `${this.currentUser.profilePicture}?t=${this.imageTimestamp}`;
+    const profilePic = this.currentUser?.profilePicture;
+
+    if (!profilePic) {
+      // Return avatar if no picture exists
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        this.currentUser?.fullName || 'User'
+      )}&background=2563eb&color=fff`;
     }
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      this.currentUser?.fullName || 'User'
-    )}&background=2563eb&color=fff`;
+
+    // If it's already a full URL (starts with http), just add the timestamp
+    if (profilePic.startsWith('http')) {
+      return `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${this.imageTimestamp}`;
+    }
+
+    // If it's just a filename, prepend the API URL (Backend URL)
+    // Replace 'http://54.253.18.25:5000' with your actual backend variable if you have one
+    const baseUrl = 'http://54.253.18.25:5000';
+    return `${baseUrl}/${profilePic}?t=${this.imageTimestamp}`;
   }
 
   onImageError(event: any): void {
