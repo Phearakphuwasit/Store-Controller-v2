@@ -66,14 +66,6 @@ app.get("/api", (req, res) => res.json({ status: "OK", message: "API is running"
 // ----------------------
 // Serve Angular Frontend
 // ----------------------
-const frontendPath = path.join(__dirname, "../frontend/dist/store_controller");
-app.use(express.static(frontendPath));
-
-// Catch-all for Angular routes (must be last)
-app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
-
 // ----------------------
 // Error Handling Middleware
 // ----------------------
@@ -84,7 +76,6 @@ app.use((err, req, res, next) => {
     message: err.message || "Server Error",
   });
 });
-console.log("New Update Applied Successfully");
 // ----------------------
 // Start Server
 // ----------------------
