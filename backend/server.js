@@ -24,52 +24,57 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// ----------------------
 // Middleware
+// ----------------------
 app.use(cors());
 app.use(helmet());
+app.use(morgan("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   abortOnLimit: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
 
-// Serve static files (for images)
+// Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/assets/images", express.static(path.join(__dirname, "assets/images")));
 
-// Serve Angular frontend
-app.use(express.static(path.join(__dirname, '../frontend/dist/store_controller')));
-
-// Handle Angular routing, return all requests to Angular index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/store_controller/index.html'));
-});
-
-// API routes
+// ----------------------
+// API Routes
+// ----------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
-// app.use("/api/categories", categoryRoutes);
-// app.use("/api/stock", stockRoutes);
+//app.use("/api/categories", categoryRoutes);
+//app.use("/api/stock", stockRoutes);
 //app.use("/api/purchase-orders", poRoutes);
-// app.use("/api/deliveries", deliveryRoutes);
-// app.use("/api/returns", returnRoutes);
-// app.use("/api/reports/sales", salesReportRoutes);
-// app.use("/api/reports/inventory", inventoryReportRoutes);
-// app.use("/api/settings", settingsRoutes);
+//app.use("/api/deliveries", deliveryRoutes);
+//app.use("/api/returns", returnRoutes);
+//app.use("/api/reports/sales", salesReportRoutes);
+//app.use("/api/reports/inventory", inventoryReportRoutes);
+//app.use("/api/settings", settingsRoutes);
 
-// Root route
-app.get("/", (req, res) => {
-  res.send("🚀 Store Controller API is running!");
+// ----------------------
+// Root & Health Check
+// ----------------------
+app.get("/", (req, res) => res.send("🚀 Store Controller API is running!"));
+app.get("/api", (req, res) => res.json({ status: "OK", message: "API is running" }));
+
+// ----------------------
+// Serve Angular Frontend
+// ----------------------
+const frontendPath = path.join(__dirname, "../frontend/dist/store_controller");
+app.use(express.static(frontendPath));
+
+// Catch-all for Angular routes (must be last)
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// Health check route
-app.get("/api", (req, res) => {
-  res.json({ status: "OK", message: "API is running" });
-});
-
-// Error handling middleware
+// ----------------------
+// Error Handling Middleware
+// ----------------------
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
@@ -78,9 +83,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
+// ----------------------
+// Start Server
+// ----------------------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log("======================================");
   console.log(`🚀 Store Controller Backend is running on port ${PORT}`);
   console.log(`📡 API available at: http://0.0.0.0:${PORT}/api`);

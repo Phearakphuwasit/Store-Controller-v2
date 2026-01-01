@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms'; 
-
 import { AuthService } from '../../services/auth.service';
 import { ProductService, Product, ProductStats } from '../../services/product.service';
 import { AddProduct } from './add-product/add-product';
