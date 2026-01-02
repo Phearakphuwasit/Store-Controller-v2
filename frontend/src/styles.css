@@ -1,3 +1,33 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "tailwindcss";
+.label-dark {
+  @apply block mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400;
+}
+
+.input-dark {
+  @apply w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3
+         text-sm text-slate-100 placeholder:text-slate-500
+         focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30
+         transition;
+}
+
+.error-text {
+  @apply mt-1 text-[11px] font-semibold text-rose-400;
+}
+
+.select-wrapper {
+  position: relative;
+}
+.select-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid #94a3b8;
+  border-bottom: 2px solid #94a3b8;
+  transform: translateY(-50%) rotate(45deg);
+  pointer-events: none;
+}

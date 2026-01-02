@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { CommonModule } from '@angular/common'; // Fixes *ngIf
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms'; // Fixes [formGroup]
-import { NgIconComponent } from '@ng-icons/core'; // Fixes <ng-icon>
-import { ProductService } from '../../../services/product.service';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NgIconComponent } from '@ng-icons/core';
+import { ProductService, Product } from '../../../services/product.service';
 
 @Component({
   selector: 'app-add-product',
@@ -11,8 +11,7 @@ import { ProductService } from '../../../services/product.service';
   templateUrl: './add-product.component.html',
 })
 export class AddProductComponent {
-  // Ensure the class name is exactly this
-  @Output() productAdded = new EventEmitter<void>();
+  @Output() productAdded = new EventEmitter<Product>(); // ✅ MUST be Product
   @Output() close = new EventEmitter<void>();
 
   productForm: FormGroup;
@@ -53,19 +52,16 @@ export class AddProductComponent {
     Object.keys(this.productForm.value).forEach((key) => {
       formData.append(key, this.productForm.value[key]);
     });
-
-    if (this.selectedFile) {
-      formData.append('productImage', this.selectedFile);
-    }
+    if (this.selectedFile) formData.append('productImage', this.selectedFile);
 
     this.productService.createProduct(formData).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-        // Pass the product from the response back to the dashboard
-        this.productAdded.emit(res.product);
+        const product: Product = res.product || res.data || res; // ✅ ensure Product type
+        this.productAdded.emit(product); // ✅ emit Product
         this.onClose();
       },
-      error: (err: any) => {
+      error: (err) => {
         console.error('Upload failed', err);
         this.isLoading = false;
       },

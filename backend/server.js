@@ -59,6 +59,7 @@ app.use("/assets/images", express.static(path.join(__dirname, "assets/images")))
 // ----------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
 
 // Root & Health Check
 app.get("/", (req, res) => res.send("🚀 Store Controller API is running!"));

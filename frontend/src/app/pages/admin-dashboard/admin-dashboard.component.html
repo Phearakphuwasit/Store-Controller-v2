@@ -22,10 +22,6 @@
               </svg>
               {{ currentUser?.location?.city || 'Loading...' }}, {{ currentUser?.location?.country }}
             </span>
-            <span class="text-slate-300">|</span>
-            <span class="uppercase tracking-widest text-[10px] text-indigo-600 font-black">
-             {{ currentUser?.role || 'Unknown' }}
-            </span>
           </div>
         </div>
       </div>
@@ -201,10 +197,9 @@
     </div>
   </div>
 
-<app-add-product 
-  *ngIf="showAddProductModal" 
-  (productAdded)="onProductAdded($event)"
-  (close)="closeAddProductModal()">
-</app-add-product>
+  <app-add-product *ngIf="showAddProductModal" (productAdded)="onProductAdded($event)" (close)="closeAddProductModal()">
+  </app-add-product>
+
+
 
 </div>

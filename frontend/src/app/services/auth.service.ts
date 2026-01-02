@@ -13,7 +13,6 @@ export class AuthService {
     if (user) {
       this.currentUser.next(JSON.parse(user));
     } else {
-      // Check for old 'username' key and migrate
       const oldUsername = localStorage.getItem('username');
       if (oldUsername) {
         const migratedUser = { fullName: oldUsername };
@@ -66,6 +65,13 @@ export class AuthService {
         }
       })
     );
+  }
+
+  // ================= UPDATE PASSWORD =================
+  updatePassword(currentPassword: string, newPassword: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = { 'Authorization': token || '' };
+    return this.http.put(`${this.apiUrl}/auth/update-password`, { currentPassword, newPassword }, { headers });
   }
 
   // ================= CHECK LOGIN =================
