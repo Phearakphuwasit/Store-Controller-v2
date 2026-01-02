@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 const {
   register,
   login,
@@ -10,9 +9,12 @@ const {
 } = require("../controllers/auth.controller");
 const auth = require("../middleware/auth");
 
-router.post("/register", register);
+
+const upload = require("../middleware/multerConfig"); 
+
+router.post("/register", upload.single("profilePicture"), register); 
 router.post("/login", login);
-router.put("/profile", auth, updateProfile);
+router.put("/profile", auth, upload.single("profilePicture"), updateProfile);
 router.post("/update-location", updateLocation);
 router.get("/:id", getProfile); 
 

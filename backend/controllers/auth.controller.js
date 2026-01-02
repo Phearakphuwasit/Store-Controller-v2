@@ -15,7 +15,7 @@ const generateToken = (user) => {
 };
 
 // ================= REGISTER =================
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => { // Added next
   try {
     const { fullName, email, password, role } = req.body;
 
@@ -28,26 +28,17 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email already exists" });
     }
 
-    // Map role correctly (Now including 'staff')
     let userRole = "user"; 
     const validRoles = ["user", "admin", "manager", "staff"];
     if (validRoles.includes(role)) {
       userRole = role;
     }
 
-    // Handle profile picture
+    // Handle profile picture via MULTER (req.file)
     let profilePicture = null;
-    if (req.files && req.files.profilePicture) {
-      const file = req.files.profilePicture;
-      const uploadDir = path.join(__dirname, "../uploads");
-      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-      const filename = `profile-${Date.now()}${path.extname(file.name)}`;
-      const filepath = path.join(uploadDir, filename);
-      await file.mv(filepath);
-      
-      // Use relative path for database, construct full URL in frontend or via getter
-      profilePicture = `uploads/${filename}`;
+    if (req.file) {
+      // Multer puts the file in req.file, not req.files
+      profilePicture = req.file.path.replace(/\\/g, "/");
     }
 
     const user = new User({
@@ -64,21 +55,22 @@ exports.register = async (req, res) => {
 
     res.status(201).json({ success: true, user: userData, token });
   } catch (err) {
+    // If next is defined in arguments, this works. Otherwise, use res.status
+    console.error("Register Error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
 // ================= LOGIN =================
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => { // Added next
   try {
-    const { email, password, lat, lng } = req.body; // Changed from latitude/longitude
+    const { email, password, lat, lng } = req.body;
 
-    const user = await User.findOne({ email }).select("+password"); // Need +password because we used select:false
+    const user = await User.findOne({ email }).select("+password");
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
-    // Geocoding Logic
     if (lat && lng) {
       try {
         const response = await axios.get("https://nominatim.openstreetmap.org/reverse", {
