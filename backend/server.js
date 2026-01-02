@@ -20,13 +20,9 @@ connectDB();
 // ----------------------
 // Middleware
 // ----------------------
-
-// 1. Security & Logging
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-
-// 2. CORS (Removed the duplicate 'const' line)
 app.use(cors({
   origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -34,18 +30,12 @@ app.use(cors({
 }));
 
 app.use(morgan("dev"));
-
-// 3. Body Parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-
-// 4. File Upload (Note: If using Multer in routes, express-fileupload might conflict)
 app.use(fileUpload({
   createParentPath: true,
   limits: { fileSize: 5 * 1024 * 1024 }, 
 }));
-
-// 5. Static Folder Serving
 app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
   setHeaders: (res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -69,13 +59,15 @@ app.get("/api", (req, res) => res.json({ status: "OK", message: "API is running"
 // Error Handling Middleware
 // ----------------------
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Server Error",
-  });
+  if (err instanceof multer.MulterError) {
+    // A Multer error occurred when uploading (e.g., file too large)
+    return res.status(400).json({ success: false, message: err.message });
+  } else if (err) {
+    // An unknown error occurred
+    return res.status(500).json({ success: false, message: err.message });
+  }
+  next();
 });
-
 // ----------------------
 // Start Server
 // ----------------------

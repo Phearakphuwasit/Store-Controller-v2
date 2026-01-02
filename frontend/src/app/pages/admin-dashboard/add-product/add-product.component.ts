@@ -11,10 +11,10 @@ import { ProductService, Product } from '../../../services/product.service';
   templateUrl: './add-product.component.html',
 })
 export class AddProductComponent {
-  @Output() productAdded = new EventEmitter<Product>(); // ✅ MUST be Product
+  @Output() productAdded = new EventEmitter<Product>();
   @Output() close = new EventEmitter<void>();
-
-  productForm: FormGroup;
+  imagePreview: string | ArrayBuffer | null = null;
+  productForm!: FormGroup;
   selectedFile: File | null = null;
   previewUrl: string | null = null;
   isLoading = false;
@@ -29,40 +29,47 @@ export class AddProductComponent {
     });
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-      const reader = new FileReader();
-      reader.onload = () => (this.previewUrl = reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  }
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
 
-  removeFile() {
-    this.selectedFile = null;
-    this.previewUrl = null;
+    if (!file) return;
+
+    // ✅ Save the file for submission
+    this.selectedFile = file;
+
+    // ✅ Optional: generate preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imagePreview = reader.result;
+    };
+    reader.readAsDataURL(file);
   }
 
   onSubmit() {
-    if (this.productForm.invalid) return;
+    if (this.productForm.invalid || this.isLoading) return;
 
     this.isLoading = true;
+
     const formData = new FormData();
-    Object.keys(this.productForm.value).forEach((key) => {
-      formData.append(key, this.productForm.value[key]);
-    });
-    if (this.selectedFile) formData.append('productImage', this.selectedFile);
+    formData.append('name', this.productForm.value.name);
+    formData.append('description', this.productForm.value.description);
+    formData.append('category', this.productForm.value.category);
+    formData.append('price', this.productForm.value.price.toString());
+    formData.append('stock', this.productForm.value.stock.toString());
+    if (this.selectedFile) {
+      formData.append('productImage', this.selectedFile, this.selectedFile.name);
+    }
 
     this.productService.createProduct(formData).subscribe({
       next: (res: any) => {
+        const product = res.product;
+        this.productAdded.emit(product);
         this.isLoading = false;
-        const product: Product = res.product || res.data || res; // ✅ ensure Product type
-        this.productAdded.emit(product); // ✅ emit Product
         this.onClose();
       },
       error: (err) => {
-        console.error('Upload failed', err);
+        console.error('Create product failed', err.error || err);
         this.isLoading = false;
       },
     });

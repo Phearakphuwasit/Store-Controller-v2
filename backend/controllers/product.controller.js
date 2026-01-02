@@ -3,26 +3,34 @@ const Product = require("../models/Product");
 // ================= CREATE PRODUCT (With Image) =================
 exports.createProduct = async (req, res) => {
   try {
-    // req.body contains text fields (name, price, etc.)
-    // req.file contains the image handled by Multer
-    const productData = { ...req.body };
+    const productData = {
+      name: req.body.name,
+      description: req.body.description,
+      category: req.body.category,
+      price: Number(req.body.price),
+      stock: Number(req.body.stock),
+    };
 
     if (req.file) {
-      // Save the path to the database (replace backslashes for URL compatibility)
       productData.image = req.file.path.replace(/\\/g, "/");
     }
 
-    const product = new Product(productData);
-    await product.save();
+    const product = await Product.create(productData);
 
-    res.status(201).json({ 
-      success: true, 
+    res.status(201).json({
+      success: true,
       message: "Product created successfully",
-      product 
+      product
     });
+
   } catch (err) {
     console.error("CREATE PRODUCT ERROR:", err);
-    res.status(400).json({ success: false, message: err.message });
+
+    res.status(400).json({
+      success: false,
+      message: err.message,
+      errors: err.errors || null
+    });
   }
 };
 
