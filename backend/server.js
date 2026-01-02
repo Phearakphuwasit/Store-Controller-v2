@@ -6,6 +6,7 @@ const morgan = require("morgan");
 const fileUpload = require("express-fileupload");
 const connectDB = require("./config/db");
 const path = require("path");
+const multer = require('multer');
 
 // Routes
 const authRoutes = require("./routes/auth.routes");
