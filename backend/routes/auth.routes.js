@@ -5,17 +5,42 @@ const {
   login,
   getProfile,
   updateProfile,
-  updateLocation
+  updateLocation,
 } = require("../controllers/auth.controller");
 const auth = require("../middleware/auth");
 
+const upload = require("../middleware/multerConfig");
 
-const upload = require("../middleware/multerConfig"); 
-
-router.post("/register", upload.single("profilePicture"), register); 
+router.post(
+  "/register",
+  (req, res, next) => {
+    upload.single("profilePicture")(req, res, function (err) {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          message: err.message,
+        });
+      }
+      next();
+    });
+  },
+  register
+);
 router.post("/login", login);
-router.put("/profile", auth, upload.single("profilePicture"), updateProfile);
+router.put(
+  "/profile",
+  auth,
+  (req, res, next) => {
+    upload.single("profilePicture")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err.message });
+      }
+      next();
+    });
+  },
+  updateProfile
+);
 router.post("/update-location", updateLocation);
-router.get("/:id", getProfile); 
+router.get("/:id", getProfile);
 
 module.exports = router;

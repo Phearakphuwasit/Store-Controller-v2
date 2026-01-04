@@ -56,8 +56,19 @@ export class AuthService {
   // ================= UPDATE PROFILE =================
   updateProfile(data: any): Observable<any> {
     const token = localStorage.getItem('token');
-    const headers = { 'Authorization': token || '' };
-    return this.http.put(`${this.apiUrl}/auth/profile`, data, { headers }).pipe(
+
+    const headers = {
+      Authorization: `Bearer ${token}`, // also fixes auth format
+    };
+
+    const formData = new FormData();
+    Object.keys(data).forEach((key) => {
+      if (data[key] !== null && data[key] !== undefined) {
+        formData.append(key, data[key]);
+      }
+    });
+
+    return this.http.put(`${this.apiUrl}/auth/profile`, formData, { headers }).pipe(
       tap((res: any) => {
         if (res.user) {
           localStorage.setItem('currentUser', JSON.stringify(res.user));
@@ -66,12 +77,15 @@ export class AuthService {
       })
     );
   }
-
   // ================= UPDATE PASSWORD =================
   updatePassword(currentPassword: string, newPassword: string): Observable<any> {
     const token = localStorage.getItem('token');
-    const headers = { 'Authorization': token || '' };
-    return this.http.put(`${this.apiUrl}/auth/update-password`, { currentPassword, newPassword }, { headers });
+    const headers = { Authorization: token || '' };
+    return this.http.put(
+      `${this.apiUrl}/auth/update-password`,
+      { currentPassword, newPassword },
+      { headers }
+    );
   }
 
   // ================= CHECK LOGIN =================
