@@ -3,80 +3,84 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const axios = require("axios");
 
 // ================= HELPER =================
 const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 };
 
 // ================= REGISTER =================
-exports.register = async (req, res, next) => { // Added next
+exports.register = async (req, res) => {
   try {
     const { fullName, email, password, role } = req.body;
 
     if (!fullName || !email || !password) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ success: false, message: "Email already exists" });
+      return res
+        .status(409)
+        .json({ success: false, message: "Email already exists" });
     }
 
-    let userRole = "user"; 
     const validRoles = ["user", "admin", "manager", "staff"];
-    if (validRoles.includes(role)) {
-      userRole = role;
-    }
+    const userRole = validRoles.includes(role) ? role : "user";
 
-    // Handle profile picture via MULTER (req.file)
     let profilePicture = null;
     if (req.file) {
-      // Multer puts the file in req.file, not req.files
       profilePicture = req.file.path.replace(/\\/g, "/");
     }
 
     const user = new User({
       fullName,
       email,
-      password,
+      password, // ✅ plain password ONLY
       role: userRole,
       profilePicture,
     });
 
-    await user.save();
+    await user.save(); // pre("save") hashes it
+
     const token = generateToken(user);
     const { password: _, ...userData } = user.toObject();
 
     res.status(201).json({ success: true, user: userData, token });
   } catch (err) {
-    // If next is defined in arguments, this works. Otherwise, use res.status
     console.error("Register Error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
 // ================= LOGIN =================
-exports.login = async (req, res, next) => { // Added next
+exports.login = async (req, res, next) => {
+  // Added next
   try {
     const { email, password, lat, lng } = req.body;
 
     const user = await User.findOne({ email }).select("+password");
     if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     if (lat && lng) {
       try {
-        const response = await axios.get("https://nominatim.openstreetmap.org/reverse", {
-          params: { lat, lon: lng, format: "json" },
-          headers: { "User-Agent": "StoreBackend/1.0" },
-        });
+        const response = await axios.get(
+          "https://nominatim.openstreetmap.org/reverse",
+          {
+            params: { lat, lon: lng, format: "json" },
+            headers: { "User-Agent": "StoreBackend/1.0" },
+          }
+        );
 
         const { city, town, village, country } = response.data.address || {};
         user.locations.push({
@@ -84,7 +88,7 @@ exports.login = async (req, res, next) => { // Added next
           lng: Number(lng),
           city: city || town || village || "Unknown City",
           country: country || "Unknown Country",
-          timestamp: new Date()
+          timestamp: new Date(),
         });
         await user.save();
       } catch (err) {
@@ -114,7 +118,7 @@ exports.getProfile = async (req, res) => {
 
     // 2️⃣ Query the user
     const user = await User.findById(id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -137,11 +141,10 @@ exports.getProfile = async (req, res) => {
     });
   }
 };
-// ================= UPDATE PROFILE =================
 // ================= UPDATE PROFILE (Fixed for Multer) =================
 exports.updateProfile = async (req, res, next) => {
   try {
-    const userId = req.user.id; 
+    const userId = req.user.id;
     const { fullName, email } = req.body;
 
     let updateData = {};
@@ -153,11 +156,20 @@ exports.updateProfile = async (req, res, next) => {
       updateData.profilePicture = `uploads/${req.file.filename}`;
     }
 
-    const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const user = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const { password: _, ...userData } = user.toObject();
-    res.json({ success: true, message: "Profile updated successfully", user: userData });
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: userData,
+    });
   } catch (err) {
     console.error("UPDATE PROFILE ERROR:", err);
     res.status(500).json({ success: false, message: err.message });
@@ -177,9 +189,9 @@ exports.updateLocation = async (req, res) => {
             lng: Number(lng),
             city: city || "Unknown",
             country: country || "Unknown",
-            timestamp: new Date()
-          }
-        }
+            timestamp: new Date(),
+          },
+        },
       },
       { new: true }
     );
