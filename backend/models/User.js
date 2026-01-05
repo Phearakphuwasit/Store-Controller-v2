@@ -1,16 +1,20 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-// Improved Location Schema
+// ----------------------
+// Location Schema
+// ----------------------
 const locationSchema = new mongoose.Schema({
-  // Use names that match your frontend/service payload
-  lat: { type: Number }, 
+  lat: { type: Number },
   lng: { type: Number },
   city: { type: String, default: "Unknown" },
   country: { type: String, default: "Unknown" },
   timestamp: { type: Date, default: Date.now }
 });
 
+// ----------------------
+// User Schema
+// ----------------------
 const UserSchema = new mongoose.Schema(
   {
     fullName: {
@@ -23,50 +27,57 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       unique: true,
       lowercase: true,
-      match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+      trim: true,
+      match: [
+        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        "Please provide a valid email address",
+      ],
     },
     password: {
       type: String,
       required: [true, "Password is required"],
       minlength: 6,
-      select: false, // Prevents password from being returned in API queries by default
+      select: false,
     },
     role: {
       type: String,
-      enum: ["user", "admin", "manager", "staff"], // Added 'staff' as your frontend uses it
+      enum: ["user", "admin", "manager", "staff"],
       default: "user",
     },
-    profilePicture: {
-      type: String,
-      default: null,
-    },
-    // CHANGED: Use an array if you want to track location history (best for Uber-style apps)
-    // Or keep as a single object if you only want the "current" location
-    locations: [locationSchema], 
+    profilePicture: { type: String, default: null },
+    locations: [locationSchema],
   },
-  { 
+  {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
   }
 );
 
-// Hash password before saving
-UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+// ----------------------
+// Pre-save hook
+// ----------------------
+UserSchema.pre("save", async function () {
+  // Trim + lowercase email on creation/update
+  if (this.isModified("email") && this.email) {
+    this.email = this.email.trim().toLowerCase();
   }
+
+  // Hash password only if modified
+  if (!this.isModified("password")) return;
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
+// ----------------------
 // Compare password method
+// ----------------------
 UserSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
+// ----------------------
+// Export Model
+// ----------------------
 module.exports = mongoose.model("User", UserSchema);
