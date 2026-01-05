@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:5000/api';
+  private apiUrl = 'http://54.253.18.25:5000/api';
   public currentUser = new BehaviorSubject<any>(null);
 
   constructor(private http: HttpClient, private router: Router) {
