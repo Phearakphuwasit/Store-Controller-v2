@@ -1,10 +1,10 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+const axios = require("axios");
+const bcrypt = require("bcryptjs");
 const path = require("path");
 const fs = require("fs");
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const axios = require("axios");
 
 // ================= HELPER =================
 const generateToken = (user) => {
@@ -18,60 +18,86 @@ exports.register = async (req, res) => {
   try {
     const { fullName, email, password, role } = req.body;
 
+    // 1️⃣ Validate required fields
     if (!fullName || !email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
 
+    // 2️⃣ Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(409)
-        .json({ success: false, message: "Email already exists" });
+      return res.status(409).json({
+        success: false,
+        message: "Email already exists",
+      });
     }
 
+    // 3️⃣ Validate role
     const validRoles = ["user", "admin", "manager", "staff"];
     const userRole = validRoles.includes(role) ? role : "user";
 
+    // 4️⃣ Handle profile picture
     let profilePicture = null;
     if (req.file) {
       profilePicture = req.file.path.replace(/\\/g, "/");
     }
 
+    // 5️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // 6️⃣ Create user
     const user = new User({
       fullName,
       email,
-      password, // ✅ plain password ONLY
+      password: hashedPassword, // store hashed password
       role: userRole,
       profilePicture,
     });
 
-    await user.save(); // pre("save") hashes it
+    await user.save();
 
+    // 7️⃣ Generate token
     const token = generateToken(user);
+
+    // 8️⃣ Exclude password in response
     const { password: _, ...userData } = user.toObject();
 
     res.status(201).json({ success: true, user: userData, token });
   } catch (err) {
-    console.error("Register Error:", err);
-    res.status(500).json({ success: false, message: err.message });
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ success: false, message: "Registration failed" });
   }
 };
 
 // ================= LOGIN =================
-exports.login = async (req, res, next) => {
-  // Added next
+exports.login = async (req, res) => {
   try {
     const { email, password, lat, lng } = req.body;
 
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email and password are required" });
+    }
+
     const user = await User.findOne({ email }).select("+password");
-    if (!user || !(await user.comparePassword(password))) {
+    if (!user) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
     }
 
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    // Optional: store login location
     if (lat && lng) {
       try {
         const response = await axios.get(
@@ -83,6 +109,7 @@ exports.login = async (req, res, next) => {
         );
 
         const { city, town, village, country } = response.data.address || {};
+
         user.locations.push({
           lat: Number(lat),
           lng: Number(lng),
@@ -90,9 +117,10 @@ exports.login = async (req, res, next) => {
           country: country || "Unknown Country",
           timestamp: new Date(),
         });
+
         await user.save();
       } catch (err) {
-        console.warn("Geocoding failed during login");
+        console.warn("Geocoding failed during login:", err.message);
       }
     }
 
@@ -100,25 +128,24 @@ exports.login = async (req, res, next) => {
     const { password: _, ...userData } = user.toObject();
     res.json({ success: true, user: userData, token });
   } catch (err) {
+    console.error("LOGIN ERROR:", err);
     res.status(500).json({ success: false, message: "Login failed" });
   }
 };
+
 // ================= PROFILE =================
 exports.getProfile = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1️⃣ Validate if the ID is a valid MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid User ID format",
+        message: "Invalid User ID",
       });
     }
 
-    // 2️⃣ Query the user
     const user = await User.findById(id);
-
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -126,35 +153,29 @@ exports.getProfile = async (req, res) => {
       });
     }
 
-    // 3️⃣ Exclude password
     const { password: _, ...userData } = user.toObject();
-
-    res.json({
-      success: true,
-      user: userData,
-    });
+    res.json({ success: true, user: userData });
   } catch (err) {
     console.error("PROFILE ERROR:", err);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching profile",
-    });
+    res.status(500).json({ success: false, message: "Error fetching profile" });
   }
 };
-// ================= UPDATE PROFILE (Fixed for Multer) =================
-exports.updateProfile = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const { fullName, email } = req.body;
 
-    let updateData = {};
+// ================= UPDATE PROFILE =================
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id; // from auth middleware
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid User ID" });
+    }
+
+    const { fullName, email } = req.body;
+    const updateData = {};
     if (fullName) updateData.fullName = fullName;
     if (email) updateData.email = email;
-
-    // Handle profile picture via MULTER
-    if (req.file) {
-      updateData.profilePicture = `uploads/${req.file.filename}`;
-    }
+    if (req.file) updateData.profilePicture = `uploads/${req.file.filename}`;
 
     const user = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
@@ -165,20 +186,23 @@ exports.updateProfile = async (req, res, next) => {
         .json({ success: false, message: "User not found" });
 
     const { password: _, ...userData } = user.toObject();
-    res.json({
-      success: true,
-      message: "Profile updated successfully",
-      user: userData,
-    });
+    res.json({ success: true, message: "Profile updated", user: userData });
   } catch (err) {
     console.error("UPDATE PROFILE ERROR:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
-// ================= UPDATE LOCATION (Standalone) =================
+
+// ================= UPDATE LOCATION =================
 exports.updateLocation = async (req, res) => {
   try {
     const { userId, lat, lng, city, country } = req.body;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid User ID" });
+    }
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -196,10 +220,14 @@ exports.updateLocation = async (req, res) => {
       { new: true }
     );
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     res.json({ success: true, location: { city, country } });
   } catch (err) {
+    console.error("UPDATE LOCATION ERROR:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
