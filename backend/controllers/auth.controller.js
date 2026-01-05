@@ -18,7 +18,6 @@ exports.register = async (req, res) => {
   try {
     const { fullName, email, password, role } = req.body;
 
-    // 1️⃣ Validate required fields
     if (!fullName || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -26,7 +25,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 2️⃣ Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
@@ -35,34 +33,27 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 3️⃣ Validate role
     const validRoles = ["user", "admin", "manager", "staff"];
     const userRole = validRoles.includes(role) ? role : "user";
 
-    // 4️⃣ Handle profile picture
     let profilePicture = null;
     if (req.file) {
       profilePicture = req.file.path.replace(/\\/g, "/");
     }
 
-    // 5️⃣ Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // 6️⃣ Create user
     const user = new User({
       fullName,
       email,
-      password: hashedPassword, // store hashed password
+      password, 
       role: userRole,
       profilePicture,
     });
+    await user.save();
 
     await user.save();
 
-    // 7️⃣ Generate token
     const token = generateToken(user);
 
-    // 8️⃣ Exclude password in response
     const { password: _, ...userData } = user.toObject();
 
     res.status(201).json({ success: true, user: userData, token });
