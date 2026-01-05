@@ -65,11 +65,7 @@ export class RegisterComponent {
   selectedFile: File | null = null;
   previewUrl: string | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private authService: AuthService // <-- inject AuthService
-  ) {
+  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) {
     this.registerForm = this.fb.group({
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -129,8 +125,6 @@ export class RegisterComponent {
     this.success = '';
 
     const { fullName, email, password, role } = this.registerForm.value;
-
-    // Create FormData for file upload
     const formData = new FormData();
     formData.append('fullName', fullName);
     formData.append('email', email);
@@ -144,8 +138,8 @@ export class RegisterComponent {
       next: (res: any) => {
         this.loading = false;
         localStorage.setItem('token', res.token);
-        this.authService.currentUser.next(res.user); 
-        this.router.navigate(['/admin']); 
+        this.authService.currentUser.next(res.user);
+        this.router.navigate(['/admin']);
       },
       error: (err) => {
         this.loading = false;
@@ -159,8 +153,6 @@ export class RegisterComponent {
     if (file) {
       this.selectedFile = file;
       this.registerForm.patchValue({ profilePicture: file });
-      
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         this.previewUrl = e.target?.result as string;

@@ -11,7 +11,6 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
-  // Auth
   login(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/auth/login`, data);
   }

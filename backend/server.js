@@ -3,7 +3,6 @@ const express = require("express");
 const cors = require("cors"); // Declared here once
 const helmet = require("helmet");
 const morgan = require("morgan");
-const fileUpload = require("express-fileupload");
 const connectDB = require("./config/db");
 const path = require("path");
 const multer = require('multer');
@@ -33,10 +32,6 @@ app.use(cors({
 app.use(morgan("dev"));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(fileUpload({
-  createParentPath: true,
-  limits: { fileSize: 5 * 1024 * 1024 }, 
-}));
 app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
   setHeaders: (res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
