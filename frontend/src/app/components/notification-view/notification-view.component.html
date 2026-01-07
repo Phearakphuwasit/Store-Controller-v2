@@ -1,0 +1,38 @@
+<!-- Modal backdrop -->
+<div *ngIf="isOpen" 
+     class="fixed inset-0 bg-black/30 z-50 flex justify-center items-center">
+  
+  <!-- Modal content -->
+  <div class="bg-white rounded-2xl shadow-xl w-96 max-w-full p-6 relative">
+    
+    <!-- Close button -->
+    <button (click)="close()"
+            class="absolute top-4 right-4 text-slate-500 hover:text-red-600">
+      ✕
+    </button>
+
+    <!-- Header -->
+    <h2 class="text-lg font-bold text-slate-900 mb-2">{{ notification.title }}</h2>
+    <p class="text-xs text-slate-400 mb-4">{{ notification.createdAt | date:'short' }}</p>
+
+    <!-- Body -->
+    <p class="text-sm text-slate-700 leading-relaxed">
+      {{ notification.message }}
+    </p>
+
+    <!-- Footer (optional type display) -->
+    <div class="mt-4 flex justify-end gap-2">
+      <span *ngIf="notification.type"
+            [ngClass]="{
+              'bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg': notification.type==='success',
+              'bg-amber-100 text-amber-700 px-2 py-1 rounded-lg': notification.type==='warning',
+              'bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg': notification.type==='info',
+              'bg-rose-100 text-rose-700 px-2 py-1 rounded-lg': notification.type==='error'
+            }"
+            class="text-xs font-bold">
+        {{ notification.type | uppercase }}
+      </span>
+    </div>
+
+  </div>
+</div>
