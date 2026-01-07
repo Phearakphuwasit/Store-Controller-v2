@@ -1,45 +1,52 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-// ----------------------
-// Location Schema
-// ----------------------
-const locationSchema = new mongoose.Schema({
-  lat: { type: Number },
-  lng: { type: Number },
-  city: { type: String, default: "Unknown" },
-  country: { type: String, default: "Unknown" },
-  timestamp: { type: Date, default: Date.now }
-});
-
-// ----------------------
-// Notification Schema (New!)
-// ----------------------
-const notificationSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  message: { type: String, required: true },
-  type: { 
-    type: String, 
-    enum: ["info", "success", "warning", "error"], 
-    default: "info" 
+/* =========================
+   Location Schema
+========================= */
+const locationSchema = new mongoose.Schema(
+  {
+    lat: Number,
+    lng: Number,
+    city: { type: String, default: "Unknown" },
+    country: { type: String, default: "Unknown" },
+    timestamp: { type: Date, default: Date.now },
   },
-  isRead: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
-});
+  { _id: false }
+);
 
-// ----------------------
-// User Schema
-// ----------------------
+/* =========================
+   Notification Schema
+========================= */
+const notificationSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    message: { type: String, required: true, trim: true },
+    type: {
+      type: String,
+      enum: ["info", "success", "warning", "error"],
+      default: "info",
+    },
+    isRead: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
+/* =========================
+   User Schema
+========================= */
 const UserSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
-      required: [true, "Please provide your full name"],
+      required: true,
       trim: true,
     },
+
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: true,
       unique: true,
       lowercase: true,
       trim: true,
@@ -48,21 +55,47 @@ const UserSchema = new mongoose.Schema(
         "Please provide a valid email address",
       ],
     },
+
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: true,
       minlength: 6,
       select: false,
     },
+
     role: {
       type: String,
       enum: ["user", "admin", "manager", "staff"],
       default: "user",
     },
-    profilePicture: { type: String, default: null },
-    notifications: [notificationSchema],
-    lastExportAt: { type: Date },
-    locations: [locationSchema],
+
+    profilePicture: {
+      type: String,
+      default: null,
+    },
+
+    notifications: {
+      type: [notificationSchema],
+      default: [],
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: null,
+      match: [/^[0-9+()\s-]{6,20}$/, "Invalid phone number"],
+    },
+    address: {
+      type: String,
+      trim: true,
+      default: null,
+      maxlength: 255,
+    },
+    lastExportAt: Date,
+
+    locations: {
+      type: [locationSchema],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -71,53 +104,83 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
-
-// --- Virtual for Unread Count ---
-UserSchema.virtual('unreadNotificationsCount').get(function() {
-  return this.notifications.filter(n => !n.isRead).length;
+/* =========================
+   Virtuals
+========================= */
+UserSchema.virtual("unreadNotificationsCount").get(function () {
+  return this.notifications.filter((n) => !n.isRead).length;
 });
-// ----------------------
-// Pre-save hook
-// ----------------------
-UserSchema.pre("save", async function () {
-  // Trim + lowercase email on creation/update
-  if (this.isModified("email") && this.email) {
+
+/* =========================
+   Hooks
+========================= */
+UserSchema.pre("save", async function (next) {
+  // Normalize email
+  if (this.isModified("email")) {
     this.email = this.email.trim().toLowerCase();
   }
 
   // Hash password only if modified
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password")) return next();
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
-// ----------------------
-// Compare password method
-// ----------------------
-UserSchema.methods.comparePassword = async function (candidatePassword) {
+/* =========================
+   Methods
+========================= */
+UserSchema.methods.comparePassword = function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Add this method to the UserSchema.methods section
-UserSchema.methods.addNotification = function (title, message, type = 'info') {
+/**
+ * Add a new notification
+ */
+UserSchema.methods.addNotification = async function (
+  title,
+  message,
+  type = "info"
+) {
   this.notifications.unshift({
     title,
     message,
     type,
     isRead: false,
-    createdAt: new Date()
   });
-  
-  // Keep only the last 20 notifications to save database space
+
+  // Keep only latest 20 notifications
   if (this.notifications.length > 20) {
     this.notifications = this.notifications.slice(0, 20);
   }
-  
+
   return this.save();
 };
 
-// ----------------------
-// Export Model
-// ----------------------
+/**
+ * Mark ALL notifications as read
+ */
+UserSchema.methods.markAllNotificationsAsRead = function () {
+  this.notifications.forEach((n) => {
+    n.isRead = true;
+  });
+
+  return this.save();
+};
+
+/**
+ * Mark ONE notification as read
+ */
+UserSchema.methods.markNotificationAsRead = function (notificationId) {
+  const notification = this.notifications.id(notificationId);
+  if (notification) {
+    notification.isRead = true;
+  }
+  return this.save();
+};
+
+/* =========================
+   Export
+========================= */
 module.exports = mongoose.model("User", UserSchema);

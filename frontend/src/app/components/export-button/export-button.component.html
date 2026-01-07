@@ -1,64 +1,128 @@
-<div class="relative export-container inline-block">
-  <button 
-    (click)="toggleDropdown($event)"
+<div class="relative export-container inline-block" (click)="$event.stopPropagation()">
+
+  <!-- Trigger button -->
+  <button
     type="button"
+    (click)="toggleDropdown($event)"
     [class.bg-slate-800]="isOpen"
-    class="flex items-center gap-2.5 px-6 py-3 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-200/50 group border border-slate-800"
-    aria-haspopup="true" 
-    [aria-expanded]="isOpen">
-    
-    <svg class="w-5 h-5 text-emerald-400 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    class="flex items-center gap-2.5 px-6 py-3 bg-slate-900 text-white rounded-2xl
+           hover:bg-slate-800 transition-all active:scale-95
+           shadow-xl shadow-slate-200/50 group border border-slate-800"
+    aria-haspopup="true"
+    [attr.aria-expanded]="isOpen">
+
+    <!-- Icon -->
+    <svg class="w-5 h-5 text-emerald-400 group-hover:rotate-12 transition-transform"
+         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
-    
-    <span class="text-sm font-bold tracking-tight">Export Data</span>
-    
-    <svg 
+
+    <span class="text-sm font-bold tracking-tight">
+      Export Data
+    </span>
+
+    <!-- Arrow -->
+    <svg
+      class="w-4 h-4 opacity-40 transition-transform duration-300"
       [class.rotate-180]="isOpen"
-      class="w-4 h-4 opacity-40 transition-transform duration-300" 
       fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-width="2" d="M19 9l-7 7-7-7" />
     </svg>
   </button>
 
-  <div *ngIf="isOpen" 
-       class="absolute right-0 mt-3 w-72 bg-white rounded-[2rem] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.12)] z-[999] p-3 animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-200 origin-top-right backdrop-blur-xl">
-    
-    <button (click)="exportCSV()" 
-      class="w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-slate-50 text-slate-700 transition-all group/item text-left">
-      <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-[11px] group-hover/item:bg-emerald-600 group-hover/item:text-white transition-all shadow-sm">
+  <!-- Dropdown -->
+  <div *ngIf="isOpen"
+       class="absolute right-0 mt-3 w-72 bg-white rounded-[2rem]
+              border border-slate-100
+              shadow-[0_20px_50px_rgba(0,0,0,0.12)]
+              z-[999] p-3
+              animate-in fade-in zoom-in-95 slide-in-from-top-4
+              duration-200 origin-top-right backdrop-blur-xl">
+
+    <!-- CSV -->
+    <button
+      type="button"
+      (click)="exportCSV()"
+      class="w-full flex items-center gap-4 p-3.5 rounded-2xl
+             hover:bg-slate-50 text-slate-700 transition-all
+             group/item text-left">
+
+      <div
+        class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600
+               flex items-center justify-center font-black text-[11px]
+               group-hover/item:bg-emerald-600
+               group-hover/item:text-white transition-all shadow-sm">
         CSV
       </div>
+
       <div>
-        <p class="text-sm font-black text-slate-800">Spreadsheet (CSV)</p>
-        <p class="text-[11px] text-slate-400 font-medium">Best for large datasets</p>
+        <p class="text-sm font-black text-slate-800">
+          Spreadsheet (CSV)
+        </p>
+        <p class="text-[11px] text-slate-400 font-medium">
+          Best for large datasets
+        </p>
       </div>
     </button>
 
-    <button (click)="exportExcel()" 
-      class="w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-slate-50 text-slate-700 transition-all mt-1 group/item text-left">
-      <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-[11px] group-hover/item:bg-blue-600 group-hover/item:text-white transition-all shadow-sm">
+    <!-- Excel -->
+    <button
+      type="button"
+      (click)="exportExcel()"
+      class="w-full flex items-center gap-4 p-3.5 rounded-2xl
+             hover:bg-slate-50 text-slate-700 transition-all
+             mt-1 group/item text-left">
+
+      <div
+        class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600
+               flex items-center justify-center font-black text-[11px]
+               group-hover/item:bg-blue-600
+               group-hover/item:text-white transition-all shadow-sm">
         XLS
       </div>
+
       <div>
-        <p class="text-sm font-black text-slate-800">Microsoft Excel</p>
-        <p class="text-[11px] text-slate-400 font-medium">Formatted table format</p>
+        <p class="text-sm font-black text-slate-800">
+          Microsoft Excel
+        </p>
+        <p class="text-[11px] text-slate-400 font-medium">
+          Formatted table format
+        </p>
       </div>
     </button>
 
     <div class="my-3 mx-2 border-t border-slate-50"></div>
 
-    <button (click)="exportPrint()" 
-      class="w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-slate-50 text-slate-700 transition-all group/item text-left">
-      <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center group-hover/item:bg-slate-900 group-hover/item:text-white transition-all shadow-sm">
+    <!-- Print -->
+    <button
+      type="button"
+      (click)="exportPrint()"
+      class="w-full flex items-center gap-4 p-3.5 rounded-2xl
+             hover:bg-slate-50 text-slate-700 transition-all
+             group/item text-left">
+
+      <div
+        class="w-11 h-11 rounded-xl bg-slate-100 text-slate-500
+               flex items-center justify-center
+               group-hover/item:bg-slate-900
+               group-hover/item:text-white transition-all shadow-sm">
+
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          <path stroke-width="2"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
         </svg>
       </div>
+
       <div>
-        <p class="text-sm font-black text-slate-800">Print / Save PDF</p>
-        <p class="text-[11px] text-slate-400 font-medium">Generate document view</p>
+        <p class="text-sm font-black text-slate-800">
+          Print / Save PDF
+        </p>
+        <p class="text-[11px] text-slate-400 font-medium">
+          Generate document view
+        </p>
       </div>
     </button>
+
   </div>
 </div>

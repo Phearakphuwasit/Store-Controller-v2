@@ -1,14 +1,20 @@
-import { Component, HostListener, ElementRef, inject, ChangeDetectorRef, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  ChangeDetectorRef,
+  OnInit
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AlertService } from '../../services/alert.service';
 
 interface Notification {
   _id: string;
   title: string;
   message: string;
-  type: 'success' | 'error' | 'info' | 'warning';
-  read: boolean;
+  type: 'success' | 'warning' | 'info' | 'error';
+  isRead: boolean;
   createdAt: string;
 }
 
@@ -19,85 +25,98 @@ interface Notification {
   templateUrl: './notifications.component.html'
 })
 export class NotificationComponent implements OnInit {
+  private http = inject(HttpClient);
   private eRef = inject(ElementRef);
   private cd = inject(ChangeDetectorRef);
-  private http = inject(HttpClient);
-  private alertService = inject(AlertService);
 
   private baseUrl = 'http://localhost:5000/api/auth';
   private token = localStorage.getItem('token');
 
-  // UI states
-  isDropdownOpen = false;
-  selectedNotification: Notification | null = null;
-
   notifications: Notification[] = [];
   unreadCount = 0;
 
+  isDropdownOpen = false;
+  selectedNotification: Notification | null = null;
+
   ngOnInit(): void {
-    this.fetchNotifications();
+    this.loadNotifications();
+  }
+
+  private getHeaders() {
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${this.token}`
+      })
+    };
   }
 
   toggleDropdown(): void {
-    if (this.selectedNotification) this.selectedNotification = null;
     this.isDropdownOpen = !this.isDropdownOpen;
-    if (this.isDropdownOpen) this.fetchNotifications();
+    if (this.isDropdownOpen) {
+      this.loadNotifications();
+    }
   }
 
   @HostListener('document:click', ['$event'])
-  clickOutside(event: any): void {
+  closeOnOutsideClick(event: MouseEvent) {
     if (!this.eRef.nativeElement.contains(event.target)) {
       this.isDropdownOpen = false;
       this.cd.markForCheck();
     }
   }
 
-  private getHeaders(): { headers: HttpHeaders } {
-    return { headers: new HttpHeaders({ Authorization: `Bearer ${this.token || ''}` }) };
-  }
-
-  fetchNotifications(): void {
+  loadNotifications(): void {
     if (!this.token) return;
 
-    this.http.get<{ user: any }>(`${this.baseUrl}/profile`, this.getHeaders())
-      .subscribe({
-        next: (res: any) => {
-          this.notifications = res.user?.notifications || [];
-          this.unreadCount = this.notifications.filter(n => !n.read).length;
-          this.cd.markForCheck();
-        },
-        error: (err) => {
-          console.error('Failed to fetch notifications:', err);
-          this.alertService.show('Unable to load notifications', 'error');
-        }
+    this.http
+      .get<any>(`${this.baseUrl}/profile`, this.getHeaders())
+      .subscribe(res => {
+        this.notifications = res.user.notifications || [];
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+        this.cd.markForCheck();
       });
   }
 
-  markAllAsRead(): void {
-    if (!this.token || this.unreadCount === 0) return;
-
-    this.http.put(`${this.baseUrl}/notifications/read`, {}, this.getHeaders())
-      .subscribe({
-        next: () => {
-          this.notifications.forEach(n => n.read = true);
-          this.unreadCount = 0;
-          this.alertService.show('All caught up!', 'success');
-          this.cd.markForCheck();
-        },
-        error: (err) => {
-          console.error('Failed to mark notifications as read:', err);
-          this.alertService.show('Failed to sync notifications', 'error');
-        }
-      });
-  }
-
-  openNotification(notification: Notification, event: MouseEvent): void {
+  // 🔥 CLICK ONE NOTIFICATION
+  openNotification(n: Notification, event: MouseEvent): void {
     event.stopPropagation();
+
+    this.selectedNotification = n;
     this.isDropdownOpen = false;
-    this.selectedNotification = notification;
+
+    // Mark read locally (instant UI update)
+    if (!n.isRead) {
+      n.isRead = true;
+      this.unreadCount--;
+
+      // Sync with backend
+      this.http.put(
+        `${this.baseUrl}/notifications/${n._id}/read`,
+        {},
+        this.getHeaders()
+      ).subscribe();
+    }
+
+    this.cd.markForCheck();
   }
 
   closeNotification(): void {
     this.selectedNotification = null;
+    this.cd.markForCheck();
+  }
+
+  // 🔥 MARK ALL
+  markAllAsRead(): void {
+    if (!this.token || this.unreadCount === 0) return;
+
+    this.http.put(
+      `${this.baseUrl}/notifications/read`,
+      {},
+      this.getHeaders()
+    ).subscribe(() => {
+      this.notifications.forEach(n => (n.isRead = true));
+      this.unreadCount = 0;
+      this.cd.markForCheck();
+    });
   }
 }
