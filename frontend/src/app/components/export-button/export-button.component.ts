@@ -18,7 +18,7 @@ export class ExportButtonComponent {
   private http = inject(HttpClient);
   private alertService = inject(AlertService);
 
-  private baseUrl = 'http://localhost:5000/api/auth';
+  private baseUrl = 'http://54.253.18.25:5000/api/auth';
   private token = localStorage.getItem('token');
 
   isOpen = false;

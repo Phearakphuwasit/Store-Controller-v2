@@ -13,7 +13,7 @@ const categorySchema = new mongoose.Schema({
   },
   image: { 
     type: String, 
-    default: "/assets/images/default-category.png" // default category image
+    default: "/assets/images/default-category.png"
   },
   slug: { 
     type: String, 
@@ -22,10 +22,9 @@ const categorySchema = new mongoose.Schema({
     trim: true 
   }
 }, { 
-  timestamps: true // adds createdAt and updatedAt
+  timestamps: true
 });
 
-// ✅ Modern pre-save hook (no next)
 categorySchema.pre('save', function () {
   if (!this.slug) {
     this.slug = this.name

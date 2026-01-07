@@ -19,7 +19,7 @@ export class NotificationViewComponent {
   @Input() notification: any;   // Notification object from parent
   @Input() isOpen: boolean = false;
 
-  baseUrl = 'http://localhost:5000/api/auth';
+  baseUrl = 'http://54.253.18.25:5000/api/auth';
 
   close() {
     this.isOpen = false;

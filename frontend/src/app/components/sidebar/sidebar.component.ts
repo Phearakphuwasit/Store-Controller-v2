@@ -129,7 +129,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     // Otherwise, attach your EC2 IP manually
-    return `http://localhost:5000/${path}?t=${this.imageTimestamp}`;
+    return `http://54.253.18.25:5000/${path}?t=${this.imageTimestamp}`;
   }
 
   onImageError(event: any): void {
