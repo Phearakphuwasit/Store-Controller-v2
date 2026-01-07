@@ -25,6 +25,7 @@ import {
   heroPhoto,
 } from '@ng-icons/heroicons/outline';
 import { AuthService } from '../../services/auth.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-register',
@@ -57,10 +58,9 @@ import { AuthService } from '../../services/auth.service';
 })
 export class RegisterComponent {
   registerForm: FormGroup;
-  error: string = '';
-  success: string = '';
-  showPassword = false;
+  error = '';
   loading = false;
+  showPassword = false;
   passwordStrength = 'Weak';
   selectedFile: File | null = null;
   previewUrl: string | null = null;
@@ -75,95 +75,104 @@ export class RegisterComponent {
       profilePicture: [null],
     });
 
+    // Calculate password strength when value changes
     this.registerForm.get('password')?.valueChanges.subscribe((password) => {
-      this.calculatePasswordStrength(password);
+      this.passwordStrength = this.calculatePasswordStrength(password);
     });
   }
 
-  get hasUppercase(): boolean {
-    const password = this.registerForm.get('password')?.value;
-    return password && /[A-Z]/.test(password);
-  }
-
-  get hasLowercase(): boolean {
-    const password = this.registerForm.get('password')?.value;
-    return password && /[a-z]/.test(password);
-  }
-
-  calculatePasswordStrength(password: string): void {
-    if (!password) {
-      this.passwordStrength = 'Weak';
-      return;
-    }
-
-    const length = password.length;
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-
+  // ------------------ PASSWORD STRENGTH ------------------
+  private calculatePasswordStrength(password: string): string {
+    if (!password) return 'Weak';
     let score = 0;
-    if (length >= 8) score++;
-    if (length >= 12) score++;
-    if (hasUpper && hasLower) score++;
-    if (hasNumbers) score++;
-    if (hasSpecial) score++;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
 
-    if (score >= 4) this.passwordStrength = 'Strong';
-    else if (score >= 2) this.passwordStrength = 'Fair';
-    else this.passwordStrength = 'Weak';
+    if (score >= 4) return 'Strong';
+    if (score >= 2) return 'Fair';
+    return 'Weak';
   }
 
-  onSubmit(): void {
-    if (!this.registerForm.valid) {
-      this.registerForm.markAllAsTouched();
-      return;
-    }
-
-    this.loading = true;
-    this.error = '';
-    this.success = '';
-
-    const { fullName, email, password, role } = this.registerForm.value;
-    const formData = new FormData();
-    formData.append('fullName', fullName);
-    formData.append('email', email);
-    formData.append('password', password);
-    formData.append('role', role);
-    if (this.selectedFile) {
-      formData.append('profilePicture', this.selectedFile);
-    }
-
-    this.authService.register(formData).subscribe({
-      next: (res: any) => {
-        this.loading = false;
-        localStorage.setItem('token', res.token);
-        this.authService.currentUser.next(res.user);
-        this.router.navigate(['/admin']);
-      },
-      error: (err) => {
-        this.loading = false;
-        this.error = err?.error?.message || 'Registration failed';
-      },
-    });
+  get f() {
+    return this.registerForm.controls;
   }
 
+  // ------------------ FILE HANDLING ------------------
   onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-      this.registerForm.patchValue({ profilePicture: file });
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.previewUrl = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    this.selectedFile = file;
+    this.registerForm.patchValue({ profilePicture: file });
+
+    const reader = new FileReader();
+    reader.onload = (e) => (this.previewUrl = e.target?.result as string);
+    reader.readAsDataURL(file);
   }
 
   removeFile(): void {
     this.selectedFile = null;
     this.previewUrl = null;
     this.registerForm.patchValue({ profilePicture: null });
+  }
+
+  // ------------------ REGISTER ------------------
+  async onSubmit(): Promise<void> {
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    const { fullName, email, password, role } = this.registerForm.value;
+
+    const formData = new FormData();
+    formData.append('fullName', fullName);
+    formData.append('email', email);
+    formData.append('password', password);
+    formData.append('role', role);
+
+    if (this.selectedFile) formData.append('profilePicture', this.selectedFile);
+
+    // ------------------ GET USER LOCATION ------------------
+    try {
+      const coords = await this.getUserLocation();
+      formData.append('lat', coords.lat.toString());
+      formData.append('lng', coords.lng.toString());
+    } catch (err) {
+      console.warn('Location not available, skipping:', err);
+      formData.append('lat', '0');
+      formData.append('lng', '0');
+    }
+
+    // ------------------ CALL REGISTER API ------------------
+    this.authService.register(formData)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (res: any) => {
+          this.authService.setCurrentUser(res.user);
+          this.router.navigate(['/admin']);
+        },
+        error: (err) => {
+          console.error('Registration error:', err);
+          this.error = err?.error?.message || 'Registration failed. Please try again.';
+        },
+      });
+  }
+
+  private getUserLocation(): Promise<{ lat: number; lng: number }> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve({ lat: 0, lng: 0 });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => resolve({ lat: 0, lng: 0 }),
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    });
   }
 }

@@ -1,0 +1,49 @@
+<div class="fixed top-20 right-4 md:top-6 md:right-6 z-[10000] flex flex-col gap-4 w-full max-w-[340px] pointer-events-none">
+  <div *ngFor="let alert of alerts"
+       class="pointer-events-auto relative overflow-hidden bg-white/90 backdrop-blur-xl rounded-[1.5rem] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] group animate-in slide-in-from-right duration-500">
+    
+    <div class="absolute bottom-0 left-0 h-1 transition-all duration-[4000ms] ease-linear bg-current opacity-20"
+         [ngClass]="{
+           'text-emerald-500': alert.type === 'success',
+           'text-rose-500': alert.type === 'error',
+           'text-indigo-500': alert.type === 'info',
+           'text-amber-500': alert.type === 'warning'
+         }"
+         [style.width]="'0%'"
+         #progressBar>
+    </div>
+
+    <div class="flex items-start gap-4 p-5">
+      <div class="shrink-0 mt-0.5">
+        <div *ngIf="alert.type === 'success'" class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div *ngIf="alert.type === 'error'" class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-sm">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+        </div>
+        <div *ngIf="alert.type === 'info'" class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+
+      <div class="flex-1 pt-1">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]"
+                [ngClass]="{
+                  'text-emerald-600': alert.type === 'success',
+                  'text-rose-600': alert.type === 'error',
+                  'text-indigo-600': alert.type === 'info'
+                }">
+            {{ alert.type }}
+          </span>
+          <button (click)="remove(alert.id)" class="text-slate-300 hover:text-slate-900 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p class="text-sm font-bold text-slate-800 leading-snug">
+          {{ alert.message }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,11 +4,13 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { AlertComponent } from './components/alert/alert.component';
+
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, CommonModule],
+  imports: [RouterOutlet, SidebarComponent, CommonModule, AlertComponent],
   templateUrl: "./app.component.html"
 })
 export class AppComponent implements OnInit {

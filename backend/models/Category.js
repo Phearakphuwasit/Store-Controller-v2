@@ -25,12 +25,14 @@ const categorySchema = new mongoose.Schema({
   timestamps: true // adds createdAt and updatedAt
 });
 
-// Create slug automatically before saving
-categorySchema.pre('save', function(next) {
+// ✅ Modern pre-save hook (no next)
+categorySchema.pre('save', function () {
   if (!this.slug) {
-    this.slug = this.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-]/g, '');
   }
-  next();
 });
 
 module.exports = mongoose.model('Category', categorySchema);

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -19,12 +20,19 @@ export class LoginComponent {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
-      rememberMe: [false]
+      rememberMe: [false],
     });
+  }
+
+  // Getter for easy template access
+  get f() {
+    return this.loginForm.controls;
   }
 
   onSubmit() {
     this.error = '';
+
+    // Stop if form is invalid
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -32,32 +40,28 @@ export class LoginComponent {
 
     this.loading = true;
 
-    const { email, password } = this.loginForm.value;
+    const { email, password, rememberMe } = this.loginForm.value;
 
-    this.authService.login({ email, password }).subscribe({
-      next: (res: any) => {
-        this.loading = false;
+    // Call login from AuthService
+    this.authService.login({ email, password })
+      .pipe(finalize(() => (this.loading = false))) // automatically stop loading
+      .subscribe({
+        next: (res: any) => {
+          // ✅ Save token and user in AuthService (centralized)
+          this.authService.setToken(res.token, rememberMe); 
+          this.authService.setCurrentUser(res.user);
 
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('currentUser', JSON.stringify(res.user));
-        this.authService.currentUser.next(res.user);
+          // Navigate to dashboard
+          this.router.navigate(['/admin']);
+        },
+        error: (err) => {
+          console.error('Login error:', err);
 
-        this.router.navigate(['/admin']);
-      },
-      error: (err) => {
-        this.loading = false;
-
-        // Fix: handle different backend error structures
-        if (err.error?.message) {
-          this.error = err.error.message;
-        } else if (err.message) {
-          this.error = err.message;
-        } else {
-          this.error = 'Login failed. Please try again.';
-        }
-
-        console.error('Login error:', err);
-      }
-    });
+          // Friendly error message
+          if (err.error?.message) this.error = err.error.message;
+          else if (err.message) this.error = err.message;
+          else this.error = 'Login failed. Please check your credentials.';
+        },
+      });
   }
 }

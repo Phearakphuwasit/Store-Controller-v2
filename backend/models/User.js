@@ -13,6 +13,21 @@ const locationSchema = new mongoose.Schema({
 });
 
 // ----------------------
+// Notification Schema (New!)
+// ----------------------
+const notificationSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  message: { type: String, required: true },
+  type: { 
+    type: String, 
+    enum: ["info", "success", "warning", "error"], 
+    default: "info" 
+  },
+  isRead: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// ----------------------
 // User Schema
 // ----------------------
 const UserSchema = new mongoose.Schema(
@@ -45,6 +60,8 @@ const UserSchema = new mongoose.Schema(
       default: "user",
     },
     profilePicture: { type: String, default: null },
+    notifications: [notificationSchema],
+    lastExportAt: { type: Date },
     locations: [locationSchema],
   },
   {
@@ -54,6 +71,11 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
+
+// --- Virtual for Unread Count ---
+UserSchema.virtual('unreadNotificationsCount').get(function() {
+  return this.notifications.filter(n => !n.isRead).length;
+});
 // ----------------------
 // Pre-save hook
 // ----------------------
@@ -75,6 +97,24 @@ UserSchema.pre("save", async function () {
 // ----------------------
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Add this method to the UserSchema.methods section
+UserSchema.methods.addNotification = function (title, message, type = 'info') {
+  this.notifications.unshift({
+    title,
+    message,
+    type,
+    isRead: false,
+    createdAt: new Date()
+  });
+  
+  // Keep only the last 20 notifications to save database space
+  if (this.notifications.length > 20) {
+    this.notifications = this.notifications.slice(0, 20);
+  }
+  
+  return this.save();
 };
 
 // ----------------------

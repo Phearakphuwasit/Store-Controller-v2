@@ -21,17 +21,14 @@ interface MenuItem {
   styleUrls: ['./sidebar.component.css'],
 })
 export class SidebarComponent implements OnInit, OnDestroy {
-  // Services
   private authService = inject(AuthService);
   private sanitizer = inject(DomSanitizer);
 
-  // State
   currentUser: any = null;
   private subscriptions = new Subscription();
   imageTimestamp: number = Date.now();
   private previousProfilePicture: string = '';
 
-  // Menu Definitions
   inventoryMenu: MenuItem[] = [
     {
       label: 'Dashboard',
@@ -92,6 +89,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
     );
   }
 
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
@@ -107,21 +114,23 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return this.sanitizer.bypassSecurityTrustHtml(svg || '');
   }
 
-getProfilePicture(): string {
-  if (!this.currentUser?.profilePicture) {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.currentUser?.fullName || 'User')}`;
-  }
+  getProfilePicture(): string {
+    if (!this.currentUser?.profilePicture) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        this.currentUser?.fullName || 'User'
+      )}`;
+    }
 
-  const path = this.currentUser.profilePicture;
-  
-  // If the database already stored the full URL, just use it
-  if (path.startsWith('http')) {
-    return `${path}?t=${this.imageTimestamp}`;
-  }
+    const path = this.currentUser.profilePicture;
 
-  // Otherwise, attach your EC2 IP manually
-  return `http://54.253.18.25:5000/${path}?t=${this.imageTimestamp}`;
-}
+    // If the database already stored the full URL, just use it
+    if (path.startsWith('http')) {
+      return `${path}?t=${this.imageTimestamp}`;
+    }
+
+    // Otherwise, attach your EC2 IP manually
+    return `http://localhost:5000/${path}?t=${this.imageTimestamp}`;
+  }
 
   onImageError(event: any): void {
     event.target.src = `https://ui-avatars.com/api/?name=User&background=2563eb&color=fff`;

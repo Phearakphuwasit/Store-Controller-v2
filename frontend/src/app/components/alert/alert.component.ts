@@ -1,46 +1,39 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AlertService } from '../../services/alert.service';
 
 @Component({
   selector: 'app-alert',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div
-      *ngIf="visible"
-      class="fixed top-5 right-5 w-80 p-4 rounded-xl shadow-lg flex items-start gap-3 text-white animate-in fade-in duration-300"
-      [ngClass]="{
-        'bg-green-600': type === 'success',
-        'bg-red-600': type === 'error',
-        'bg-blue-600': type === 'info',
-        'bg-yellow-500 text-black': type === 'warning'
-      }"
-    >
-      <div class="flex-1">
-        <p class="font-semibold">{{ message }}</p>
-      </div>
-      <button (click)="close()" class="ml-2 text-white hover:text-gray-200">
-        &times;
-      </button>
-    </div>
-  `,
+  templateUrl: './alert.component.html'
 })
-export class AlertComponent {
-  @Input() message: string = 'This is an alert!';
-  @Input() type: 'success' | 'error' | 'info' | 'warning' = 'info';
-  @Input() duration: number = 3000;
-  @Output() closed = new EventEmitter<void>();
-
-  visible = true;
+export class AlertComponent implements OnInit {
+  private alertService = inject(AlertService);
+  private cd = inject(ChangeDetectorRef);
+  
+  alerts: any[] = [];
 
   ngOnInit() {
-    if (this.duration > 0) {
-      setTimeout(() => this.close(), this.duration);
-    }
+    this.alertService.alert$.subscribe(alert => {
+      const id = Date.now();
+      const newAlert = { ...alert, id };
+      this.alerts.push(newAlert);
+      this.cd.markForCheck();
+
+      // Trigger the progress bar animation after a tiny delay
+      setTimeout(() => {
+        const bar = document.querySelector(`[style*="width: 0%"]`);
+        if (bar) (bar as HTMLElement).style.width = '100%';
+      }, 50);
+
+      // Auto-remove
+      setTimeout(() => this.remove(id), 4000);
+    });
   }
 
-  close() {
-    this.visible = false;
-    this.closed.emit();
+  remove(id: number) {
+    this.alerts = this.alerts.filter(a => a.id !== id);
+    this.cd.markForCheck();
   }
 }

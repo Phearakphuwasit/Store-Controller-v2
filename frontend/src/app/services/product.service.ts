@@ -30,18 +30,16 @@ export interface Category {
   providedIn: 'root',
 })
 export class ProductService {
-  private apiUrl = 'http://54.253.18.25:5000/api/products';
+  private apiUrl = 'http://localhost:5000/api/products';
 
   constructor(private http: HttpClient) {}
 
-  // ✅ GET ALL PRODUCTS
   getProducts(): Observable<Product[]> {
     return this.http
       .get<{ success: boolean; products: Product[] }>(this.apiUrl)
       .pipe(map((res) => res.products || []));
   }
 
-  // ✅ GET STATS
   getStats(): Observable<ProductStats> {
     return this.http.get<{ success: boolean; stats: any }>(`${this.apiUrl}/stats`).pipe(
       map((res) => ({
@@ -53,24 +51,30 @@ export class ProductService {
     );
   }
 
-  // ✅ CREATE PRODUCT (Using FormData for Image Upload)
+  private getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('User not authenticated');
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  // ✅ CREATE PRODUCT
   createProduct(formData: FormData): Observable<any> {
-    return this.http.post(this.apiUrl, formData);
+    return this.http.post(this.apiUrl, formData, { headers: this.getAuthHeaders() });
   }
 
   // ✅ UPDATE PRODUCT
   updateProduct(id: string, formData: FormData): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, formData);
+    return this.http.put(`${this.apiUrl}/${id}`, formData, { headers: this.getAuthHeaders() });
   }
 
   // ✅ DELETE PRODUCT
   deleteProduct(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
   }
 
   getCategories(): Observable<Category[]> {
     return this.http
-      .get<{ success: boolean; categories: Category[] }>('http://54.253.18.25:5000/api/categories')
+      .get<{ success: boolean; categories: Category[] }>('http://localhost:5000/api/categories')
       .pipe(map((res) => res.categories || []));
   }
 }

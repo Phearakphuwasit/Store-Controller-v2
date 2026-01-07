@@ -4,27 +4,48 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { Subscription, forkJoin } from 'rxjs';
-import { AuthService } from '../../services/auth.service';
+import { Subscription, forkJoin, firstValueFrom } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+
 import { ProductService, Product, ProductStats, Category } from '../../services/product.service';
 import { LocationService } from '../../services/LocationService';
 import { AddProductComponent } from './add-product/add-product.component';
+import { NotificationComponent } from '../../components/notifications/notifications.component';
+import { ExportButtonComponent } from '../../components/export-button/export-button.component';
+import { AlertService } from '../../services/alert.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddProductComponent], // removed FilterPipe
+  imports: [
+    CommonModule,
+    FormsModule,
+    AddProductComponent,
+    NotificationComponent,
+    ExportButtonComponent,
+  ],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
+  // --- INJECTIONS ---
+  private authService = inject(AuthService);
+  private productService = inject(ProductService);
+  private http = inject(HttpClient);
+  private locationService = inject(LocationService);
+  private cd = inject(ChangeDetectorRef);
+  private alertService = inject(AlertService);
+
+  // --- STATE ---
+  today: Date = new Date();
   username: string = 'Admin';
   currentUser: any = {
-    location: { city: 'Loading...', country: '' },
+    location: { city: '', country: '' },
     role: 'User',
     profilePicture: '',
   };
@@ -35,112 +56,100 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   categories: Category[] = [];
 
   showAddProductModal: boolean = false;
-  selectedProduct: Product | null = null;
   searchTerm: string = '';
-  notifications: any[] = [];
 
   private sub = new Subscription();
-  private baseUrl = 'http://54.253.18.25:5000';
-
-  constructor(
-    private authService: AuthService,
-    private productService: ProductService,
-    private http: HttpClient,
-    private locationService: LocationService,
-    private cd: ChangeDetectorRef
-  ) {}
+  private baseUrl = 'http://localhost:5000';
 
   ngOnInit(): void {
-    this.handleAuth();
+    this.fetchProfile(); // Fetch JWT-based profile
     this.loadDashboardData();
     this.loadCategories();
+
+    const timer = setInterval(() => {
+      this.today = new Date();
+      this.cd.markForCheck();
+    }, 1000);
+    this.sub.add(() => clearInterval(timer));
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
   }
 
-  // --- AUTH & LOCATION ---
-  handleAuth(): void {
-    this.sub.add(
-      this.authService.currentUser.subscribe((user) => {
-        if (!user?._id) return;
-        this.username = user.fullName || 'Admin';
-        this.fetchProfile(user._id);
+  // ---------------- PROFILE WITH JWT ----------------
+  fetchProfile(): void {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.alertService.show('Low stock warning', 'warning');
+      return;
+    }
 
-        if (!localStorage.getItem('locationSynced')) {
-          this.syncLocation(user._id);
-          localStorage.setItem('locationSynced', 'true');
-        }
+    this.sub.add(
+      this.authService.getProfile(token).subscribe({
+        next: (user) => {
+          const timestamp = Date.now();
+          let profileUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            user.fullName || 'Unknown'
+          )}&background=6366f1&color=fff`;
+
+          if (user.profilePicture) {
+            const cleanPath = user.profilePicture.replace(/^\/+/, '');
+            profileUrl = user.profilePicture.startsWith('http')
+              ? user.profilePicture
+              : `${this.baseUrl}/${cleanPath}?t=${timestamp}`;
+          }
+
+          this.currentUser = {
+            ...user,
+            profilePicture: profileUrl,
+            location: user.locations?.length > 0 ? user.locations[user.locations.length - 1] : null,
+          };
+
+          this.username = user.fullName || 'Admin';
+          this.cd.markForCheck();
+
+          if (!this.currentUser.location) {
+            this.syncLocation();
+          }
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Profile Fetch Error:', err);
+          this.alertService.show(err.error?.message || 'Failed to fetch profile', 'error');
+        },
       })
     );
   }
 
-  async syncLocation(userId: string) {
+  // ---------------- SYNC LOCATION ----------------
+  async syncLocation() {
     try {
       const coords = await this.locationService.getPosition();
-      const address = await this.locationService.getAddress(coords.lat, coords.lng);
+      const address = await firstValueFrom(this.locationService.getAddress(coords.lat, coords.lng));
 
-      this.http
-        .post(`${this.baseUrl}/api/auth/update-location`, {
-          userId,
-          city: address.city,
-          country: address.country,
-          lat: coords.lat,
-          lng: coords.lng,
-        })
-        .subscribe({
-          next: () => {
-            this.currentUser.location = address;
-            this.cd.markForCheck();
-          },
-          error: (err) => console.error('Failed to save location', err),
-        });
+      this.sub.add(
+        this.authService
+          .updateLocation(coords.lat, coords.lng, address.city, address.country)
+          .subscribe({
+            next: (res) => {
+              if (res.success && res.location) {
+                this.currentUser.location = res.location;
+                this.cd.markForCheck();
+              }
+            },
+            error: (err: HttpErrorResponse) => {
+              console.error('Location update failed:', err);
+              this.alertService.show(err.error?.message || 'Failed to update location', 'error');
+            },
+          })
+      );
     } catch (err) {
       console.warn('Location sync skipped:', err);
+      this.alertService.show('Low stock warning', 'warning');
     }
   }
 
-fetchProfile(userId: string): void {
-  if (!userId) return;
-  this.http.get<any>(`${this.baseUrl}/api/auth/${userId}`).subscribe({
-    next: (res) => {
-      if (res?.success && res?.user) {
-        const u = res.user;
-        const lastLoc = u.locations?.[u.locations.length - 1] || null;
-
-        let profileUrl = '';
-
-        if (u.profilePicture) {
-          // If already full URL, use it
-          profileUrl = u.profilePicture.startsWith('http')
-            ? u.profilePicture
-            : `${this.baseUrl}/${u.profilePicture.replace(/^\/+/, '')}`; // remove leading slash
-        } else {
-          // fallback to avatar
-          profileUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            u.fullName || 'Admin'
-          )}&background=6366f1&color=fff`;
-        }
-
-        this.currentUser = {
-          ...u,
-          profilePicture: profileUrl,
-          location: {
-            city: lastLoc?.city || 'City not set',
-            country: lastLoc?.country || '',
-          },
-        };
-
-        this.cd.markForCheck();
-      }
-    },
-    error: (err) => console.error('Fetch Profile Error:', err),
-  });
-}
-
-
-  // --- PRODUCTS & STATS ---
+  // ---------------- DASHBOARD DATA ----------------
   loadDashboardData(): void {
     this.sub.add(
       forkJoin({
@@ -153,7 +162,10 @@ fetchProfile(userId: string): void {
           this.stats = stats;
           this.cd.markForCheck();
         },
-        error: (err) => console.error('Dashboard load error', err),
+        error: (err: HttpErrorResponse) => {
+          console.error('Dashboard load error:', err);
+          this.alertService.show(err.error?.message || 'Failed to load dashboard', 'error');
+        },
       })
     );
   }
@@ -161,16 +173,19 @@ fetchProfile(userId: string): void {
   loadCategories(): void {
     this.sub.add(
       this.productService.getCategories().subscribe({
-        next: (data) => {
-          this.categories = data;
+        next: (cats) => {
+          this.categories = cats;
           this.cd.markForCheck();
         },
-        error: (err) => console.error('Categories load error', err),
+        error: (err: HttpErrorResponse) => {
+          console.error('Category load error:', err);
+          this.alertService.show(err.error?.message || 'Failed to load categories', 'error');
+        },
       })
     );
   }
 
-  // --- FILTER ---
+  // ---------------- FILTER ----------------
   applyFilter(): void {
     const search = this.searchTerm.toLowerCase();
     this.filteredProducts = !search
@@ -178,72 +193,54 @@ fetchProfile(userId: string): void {
       : this.products.filter(
           (p) =>
             p.name?.toLowerCase().includes(search) ||
-            (typeof p.category === 'object' ? p.category.name : p.category)?.toLowerCase().includes(search)
+            (typeof p.category === 'object' ? p.category.name : p.category)
+              ?.toLowerCase()
+              .includes(search)
         );
     this.cd.markForCheck();
   }
 
-  // --- ADD PRODUCT MODAL ---
+  // ---------------- DELETE PRODUCT ----------------
+  deleteProduct(id: string): void {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    this.sub.add(
+      this.productService.deleteProduct(id).subscribe({
+        next: () => {
+          this.alertService.show('Product removed successfully', 'info');
+          this.products = this.products.filter((p) => p._id !== id);
+          this.filteredProducts = this.filteredProducts.filter((p) => p._id !== id);
+          this.stats.totalProducts--;
+          this.cd.markForCheck();
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Delete product error:', err);
+          this.alertService.show(err.error?.message || 'Failed to delete product', 'error');
+        },
+      })
+    );
+  }
+
+  // ---------------- ADD PRODUCT ----------------
+  onProductAdded(p: Product): void {
+    this.alertService.show('New product added!', 'success');
+    this.loadDashboardData();
+    this.closeAddProductModal();
+  }
+
   openAddProductModal(): void {
-    this.selectedProduct = null;
     this.showAddProductModal = true;
     this.cd.markForCheck();
   }
 
   closeAddProductModal(): void {
     this.showAddProductModal = false;
-    this.selectedProduct = null;
     this.cd.markForCheck();
   }
 
-  onProductAdded(product: Product): void { // ✅ fixed type to Product
-    if (product) {
-      this.products.unshift(product);
-      this.filteredProducts.unshift(product);
-      this.stats.totalProducts++;
-    } else {
-      this.loadDashboardData();
-    }
-    this.closeAddProductModal();
-    this.addNotification('Inventory updated', 'success');
-  }
-
-  // --- DELETE ---
-  deleteProduct(id: string): void {
-    if (!confirm('Are you sure?')) return;
-    this.productService.deleteProduct(id).subscribe({
-      next: () => {
-        this.products = this.products.filter((p) => p._id !== id);
-        this.filteredProducts = this.filteredProducts.filter((p) => p._id !== id);
-        this.stats.totalProducts--;
-        this.addNotification('Product deleted', 'success');
-        this.cd.markForCheck();
-      },
-      error: (err) => console.error('Delete product failed', err),
-    });
-  }
-
-  // --- NOTIFICATIONS ---
-  addNotification(message: string, type: 'success' | 'error'): void {
-    const id = Date.now();
-    this.notifications.push({ id, message, type });
-    this.cd.markForCheck();
-    setTimeout(() => {
-      this.notifications = this.notifications.filter((n) => n.id !== id);
-      this.cd.markForCheck();
-    }, 3000);
-  }
-
-  // --- IMAGE FALLBACK ---
   onImageError(event: any): void {
     event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
       this.username
     )}&background=6366f1&color=fff`;
-  }
-
-  editProduct(product: Product): void {
-    this.selectedProduct = product;
-    this.showAddProductModal = true;
-    this.cd.markForCheck();
   }
 }

@@ -38,7 +38,7 @@
 
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-slate-300 mb-2">Product Name</label>
-          <input formControlName="name" type="text" placeholder="e.g. Wireless Headphones"
+          <input formControlName="name" type="text" placeholder="Enter product name"
             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all">
         </div>
 
@@ -53,10 +53,7 @@
           <select formControlName="category"
             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all appearance-none cursor-pointer">
             <option value="" disabled selected>Select category</option>
-            <option>Electronics</option>
-            <option>Fashion</option>
-            <option>Home & Living</option>
-            <option>Accessories</option>
+            <option *ngFor="let cat of categories" [value]="cat._id">{{ cat.name }}</option>
           </select>
         </div>
 
@@ -96,7 +93,6 @@
           </div>
         </button>
       </div>
-
     </form>
   </div>
 </div>
