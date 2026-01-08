@@ -6,12 +6,15 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci --only=production
 
-# Copy backend source
+# Copy backend source code
 COPY . .
 
-# Expose port
+# Set environment to production
+ENV NODE_ENV=production
+
+# Expose backend port
 EXPOSE 5000
 
 # Start backend
