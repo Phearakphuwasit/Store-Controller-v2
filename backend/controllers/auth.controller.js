@@ -16,10 +16,13 @@ const generateToken = (user) => {
 // Reverse geocode helper
 const getAddressFromCoords = async (lat, lng) => {
   try {
-    const response = await axios.get("https://nominatim.openstreetmap.org/reverse", {
-      params: { lat, lon: lng, format: "json" },
-      headers: { "User-Agent": "StoreBackend/1.0" },
-    });
+    const response = await axios.get(
+      "https://nominatim.openstreetmap.org/reverse",
+      {
+        params: { lat, lon: lng, format: "json" },
+        headers: { "User-Agent": "StoreBackend/1.0" },
+      }
+    );
     const { city, town, village, country } = response.data.address || {};
     return {
       city: city || town || village || "Unknown City",
@@ -34,16 +37,20 @@ const getAddressFromCoords = async (lat, lng) => {
 // ---------------- CONTROLLERS ----------------
 
 // REGISTER
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   try {
     const { fullName, email, password, role, lat, lng } = req.body;
     if (!fullName || !email || !password) {
-      return res.status(400).json({ success: false, message: "Required fields missing" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Required fields missing" });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(409).json({ success: false, message: "Email already exists" });
+      return res
+        .status(409)
+        .json({ success: false, message: "Email already exists" });
     }
 
     const profilePicture = req.file ? `uploads/${req.file.filename}` : null;
@@ -51,7 +58,12 @@ exports.register = async (req, res) => {
 
     if (lat && lng) {
       const address = await getAddressFromCoords(lat, lng);
-      locations.push({ lat: Number(lat), lng: Number(lng), ...address, timestamp: new Date() });
+      locations.push({
+        lat: Number(lat),
+        lng: Number(lng),
+        ...address,
+        timestamp: new Date(),
+      });
     }
 
     const user = new User({
@@ -77,21 +89,27 @@ exports.register = async (req, res) => {
     res.status(201).json({ success: true, user: userData, token });
   } catch (err) {
     console.error("REGISTER ERROR:", err);
-    res.status(500).json({ success: false, message: "Registration failed", error: err.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Registration failed", error: err.message });
   }
 };
 
 // LOGIN
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   try {
     const { email, password, lat, lng } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Email and password required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email and password required" });
     }
 
     const user = await User.findOne({ email }).select("+password");
     if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     // Update location if provided
@@ -100,7 +118,9 @@ exports.login = async (req, res) => {
       await User.findByIdAndUpdate(user._id, {
         $push: {
           locations: {
-            $each: [{ lat: Number(lat), lng: Number(lng), ...address, timestamp: new Date() }],
+            $each: [
+              { lat: Number(lat), lng: Number(lng), ...address, timestamp: new Date() },
+            ],
             $slice: -10,
           },
         },
@@ -112,12 +132,14 @@ exports.login = async (req, res) => {
     res.json({ success: true, user: userData, token });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-    res.status(500).json({ success: false, message: "Login failed", error: err.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Login failed", error: err.message });
   }
 };
 
 // GET PROFILE
-exports.getProfile = async (req, res) => {
+const getProfile = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
@@ -136,7 +158,7 @@ exports.getProfile = async (req, res) => {
 };
 
 // UPDATE PROFILE
-exports.updateProfile = async (req, res) => {
+const updateProfile = async (req, res) => {
   try {
     const userId = req.user?.id;
     const { fullName, email, phone, address, notifications } = req.body;
@@ -146,13 +168,23 @@ exports.updateProfile = async (req, res) => {
     if (email) updateData.email = email.trim().toLowerCase();
     if (phone) updateData.phone = phone;
     if (address) updateData.address = address;
-    if (notifications !== undefined) updateData.notifications = notifications === "true" || notifications === true;
+    if (notifications !== undefined)
+      updateData.notifications =
+        notifications === "true" || notifications === true;
     if (req.file) updateData.profilePicture = `uploads/${req.file.filename}`;
 
-    const user = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true, runValidators: true });
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    await user.addNotification("Profile Updated", "Your profile has been successfully updated.", "info");
+    await user.addNotification(
+      "Profile Updated",
+      "Your profile has been successfully updated.",
+      "info"
+    );
     res.json({ success: true, message: "Profile updated successfully", user });
   } catch (err) {
     console.error("UPDATE PROFILE ERROR:", err);
@@ -161,7 +193,7 @@ exports.updateProfile = async (req, res) => {
 };
 
 // UPDATE LOCATION
-exports.updateLocation = async (req, res) => {
+const updateLocation = async (req, res) => {
   try {
     const userId = req.user?.id;
     const { lat, lng, city, country } = req.body;
@@ -172,7 +204,13 @@ exports.updateLocation = async (req, res) => {
       userId,
       {
         $push: {
-          locations: { lat: Number(lat), lng: Number(lng), city: city || "Unknown", country: country || "Unknown", timestamp: new Date() },
+          locations: {
+            lat: Number(lat),
+            lng: Number(lng),
+            city: city || "Unknown",
+            country: country || "Unknown",
+            timestamp: new Date(),
+          },
         },
       },
       { new: true, runValidators: true }
@@ -189,7 +227,7 @@ exports.updateLocation = async (req, res) => {
 };
 
 // MARK NOTIFICATIONS AS READ
-exports.markNotificationsRead = async (req, res) => {
+const markNotificationsRead = async (req, res) => {
   try {
     const user = await User.findById(req.user?.id);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
@@ -202,4 +240,14 @@ exports.markNotificationsRead = async (req, res) => {
     console.error("MARK NOTIFICATIONS ERROR:", err);
     res.status(500).json({ success: false, message: err.message });
   }
+};
+
+// ---------------- EXPORT ----------------
+module.exports = {
+  register,
+  login,
+  getProfile,
+  updateProfile,
+  updateLocation,
+  markNotificationsRead,
 };

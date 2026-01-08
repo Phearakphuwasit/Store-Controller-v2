@@ -8,7 +8,7 @@ import { Observable, map } from 'rxjs';
 export interface Product {
   _id: string;
   name: string;
-  category: Category | string;
+  category: Category | null;
   price: number;
   stock: number;
   description?: string;
@@ -61,7 +61,7 @@ export class ProductService {
       .get<{ success: boolean; products: Product[] }>(this.apiUrl, {
         headers: this.getAuthHeaders(),
       })
-      .pipe(map(res => res.products ?? []));
+      .pipe(map((res) => res.products ?? []));
   }
 
   // Get a single product by ID
@@ -70,16 +70,14 @@ export class ProductService {
       .get<{ success: boolean; product: Product }>(`${this.apiUrl}/${id}`, {
         headers: this.getAuthHeaders(),
       })
-      .pipe(map(res => res.product));
+      .pipe(map((res) => res.product));
   }
 
   // Create a new product
   createProduct(formData: FormData): Observable<{ success: boolean; product: Product }> {
-    return this.http.post<{ success: boolean; product: Product }>(
-      this.apiUrl,
-      formData,
-      { headers: this.getAuthHeaders() }
-    );
+    return this.http.post<{ success: boolean; product: Product }>(this.apiUrl, formData, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   // Update an existing product
@@ -87,11 +85,9 @@ export class ProductService {
     id: string,
     formData: FormData
   ): Observable<{ success: boolean; product: Product }> {
-    return this.http.put<{ success: boolean; product: Product }>(
-      `${this.apiUrl}/${id}`,
-      formData,
-      { headers: this.getAuthHeaders() }
-    );
+    return this.http.put<{ success: boolean; product: Product }>(`${this.apiUrl}/${id}`, formData, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   // Delete a product
@@ -111,7 +107,7 @@ export class ProductService {
         headers: this.getAuthHeaders(),
       })
       .pipe(
-        map(res => ({
+        map((res) => ({
           totalProducts: res.stats?.totalProducts ?? 0,
           lowStock: res.stats?.lowStockItems ?? 0,
           outOfStock: res.stats?.outOfStock ?? 0,
@@ -129,6 +125,6 @@ export class ProductService {
       .get<{ success: boolean; categories: Category[] }>(this.categoryUrl, {
         headers: this.getAuthHeaders(),
       })
-      .pipe(map(res => res.categories ?? []));
+      .pipe(map((res) => res.categories ?? []));
   }
 }

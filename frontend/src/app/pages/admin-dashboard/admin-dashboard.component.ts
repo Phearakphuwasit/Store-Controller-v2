@@ -33,7 +33,6 @@ import { AuthService } from '../../services/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
-  // --- INJECTIONS ---
   private authService = inject(AuthService);
   private productService = inject(ProductService);
   private http = inject(HttpClient);
@@ -41,7 +40,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private cd = inject(ChangeDetectorRef);
   private alertService = inject(AlertService);
 
-  // --- STATE ---
   today: Date = new Date();
   username: string = 'Admin';
   currentUser: any = {
@@ -59,7 +57,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   searchTerm: string = '';
 
   private sub = new Subscription();
-  private baseUrl = 'http://53:5000';
+  private baseUrl = 'http://54.253.18.25:5000';
 
   ngOnInit(): void {
     this.fetchProfile(); // Fetch JWT-based profile
@@ -185,21 +183,33 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-  // ---------------- FILTER ----------------
-  applyFilter(): void {
-    const search = this.searchTerm.toLowerCase();
-    this.filteredProducts = !search
-      ? [...this.products]
-      : this.products.filter(
-          (p) =>
-            p.name?.toLowerCase().includes(search) ||
-            (typeof p.category === 'object' ? p.category.name : p.category)
-              ?.toLowerCase()
-              .includes(search)
-        );
-    this.cd.markForCheck();
-  }
+// ---------------- FILTER ----------------
+applyFilter(): void {
+  const search = this.searchTerm.toLowerCase().trim();
 
+  this.filteredProducts = !search
+    ? [...this.products]
+    : this.products.filter((p) => {
+        // Safe conversion to string
+        let categoryName = '';
+
+        if (p.category) {
+          // If category is object, use its name
+          if (typeof p.category === 'object' && 'name' in p.category && p.category.name) {
+            categoryName = p.category.name;
+          } else if (typeof p.category === 'string') {
+            categoryName = p.category;
+          }
+        }
+
+        return (
+          p.name?.toLowerCase().includes(search) ||
+          categoryName.toLowerCase().includes(search)
+        );
+      });
+
+  this.cd.markForCheck();
+}
   // ---------------- DELETE PRODUCT ----------------
   deleteProduct(id: string): void {
     if (!confirm('Are you sure you want to delete this product?')) return;

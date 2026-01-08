@@ -1,93 +1,207 @@
+// routes/auth.routes.js
 const express = require("express");
 const router = express.Router();
+
 const User = require("../models/User");
-const {
-  register,
-  login,
-  getProfile,
-  updateProfile,
-  updateLocation,
-  markNotificationsRead,
-} = require("../controllers/auth.controller");
-const auth = require("../middleware/auth"); // JWT middleware
-const upload = require("../middleware/multerConfig"); // multer for file upload
+const authController = require("../controllers/auth.controller");
+const authMiddleware = require("../middleware/auth"); // MUST be a function
+const upload = require("../middleware/multerConfig");
 
 // ==================== PUBLIC ROUTES ====================
-// Register a new user with optional profile picture
-router.post("/register", upload.single("profilePicture"), register);
 
-// Login user
-router.post("/login", login);
+// Register
+router.post(
+  "/register",
+  upload.single("profilePicture"),
+  authController.register
+);
+
+// Login
+router.post("/login", authController.login);
 
 // ==================== PROTECTED ROUTES ====================
+
 // Get current user profile
-router.get("/profile", auth, getProfile);
+router.get(
+  "/profile",
+  authMiddleware,
+  authController.getProfile
+);
 
-// Get profile by user ID
-router.get("/user/:id", auth, getProfile);
+// Get user by ID
+router.get(
+  "/user/:id",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id).select("-password");
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
 
-// Update profile with optional profile picture
-router.put("/profile", auth, upload.single("profilePicture"), updateProfile);
-
-// Update user's current location
-router.post("/update-location", auth, updateLocation);
-
-// Mark one notification as read
-router.put('/notifications/:id/read', auth, async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  const notification = user.notifications.id(req.params.id);
-  if (notification) {
-    notification.isRead = true;
-    await user.save();
+      res.json({ success: true, user });
+    } catch (err) {
+      console.error("GET USER ERROR:", err);
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
   }
+);
 
-  res.json({ success: true });
-});
-// Mark all as read
-router.put('/notifications/read', auth, async (req, res) => {
-  const user = await User.findById(req.user.id);
-  user.notifications.forEach(n => n.isRead = true);
-  await user.save();
-  res.json({ success: true });
-});
+// Update profile
+router.put(
+  "/profile",
+  authMiddleware,
+  upload.single("profilePicture"),
+  authController.updateProfile
+);
 
-// Log export activity
-router.post("/export-log", auth, async (req, res) => {
-  try {
-    await User.findByIdAndUpdate(req.user.id, { lastExportAt: new Date() });
-    res.json({ success: true, message: "Export logged successfully" });
-  } catch (err) {
-    console.error("Export log error:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: err.message });
+// Update user location
+router.post(
+  "/update-location",
+  authMiddleware,
+  authController.updateLocation
+);
+
+// ==================== NOTIFICATIONS ====================
+
+// Mark ONE notification as read
+router.put(
+  "/notifications/:id/read",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      const notification = user.notifications.id(req.params.id);
+      if (notification) {
+        notification.isRead = true;
+        await user.save();
+      }
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("MARK NOTIFICATION ERROR:", err);
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
   }
-});
+);
 
-// Export inventory with notification
-router.get("/export-inventory", auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+// Mark ALL notifications as read
+router.put(
+  "/notifications/read",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
 
-    // Send notification
-    await user.addNotification(
-      "Data Exported",
-      `A CSV export of the inventory was generated on ${new Date().toLocaleString()}.`,
-      "info"
-    );
+      user.notifications.forEach((n) => {
+        n.isRead = true;
+      });
 
-    res.json({ success: true, message: "Export logged and notification sent" });
-  } catch (err) {
-    console.error("Export inventory error:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: err.message });
+      await user.save();
+
+      res.json({
+        success: true,
+        message: "All notifications marked as read",
+      });
+    } catch (err) {
+      console.error("MARK ALL ERROR:", err);
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
   }
-});
+);
+
+// Optional controller-based route
+router.put(
+  "/notifications/read-all",
+  authMiddleware,
+  authController.markNotificationsRead
+);
+
+// ==================== EXPORT / LOG ====================
+
+// Export log
+router.post(
+  "/export-log",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      await User.findByIdAndUpdate(req.user.id, {
+        lastExportAt: new Date(),
+      });
+
+      res.json({
+        success: true,
+        message: "Export logged successfully",
+      });
+    } catch (err) {
+      console.error("EXPORT LOG ERROR:", err);
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
+  }
+);
+
+// Export inventory + notification
+router.get(
+  "/export-inventory",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      if (typeof user.addNotification === "function") {
+        await user.addNotification(
+          "Data Exported",
+          `Inventory exported on ${new Date().toLocaleString()}`,
+          "info"
+        );
+      }
+
+      res.json({
+        success: true,
+        message: "Export logged and notification sent",
+      });
+    } catch (err) {
+      console.error("EXPORT INVENTORY ERROR:", err);
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
+  }
+);
 
 module.exports = router;
