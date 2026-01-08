@@ -1,11 +1,10 @@
-version: "3.8"
-
 services:
   backend:
     build: ./backend
     container_name: store-backend
+    # Make sure to create backend/.env or remove this line if you don't need env vars
     env_file:
-      - .env
+      - ./backend/.env
     ports:
       - "5000:5000"
     volumes:

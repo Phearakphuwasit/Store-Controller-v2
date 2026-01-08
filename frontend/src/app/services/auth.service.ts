@@ -6,7 +6,7 @@ import { tap, catchError, map } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private baseUrl = 'http://54.253.18.25:5000/api';
+  private baseUrl = 'http://16.176.174.48:5000/api';
   private tokenKey = 'token';
   private userKey = 'currentUser';
 

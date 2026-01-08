@@ -36,8 +36,8 @@ export interface Category {
   providedIn: 'root',
 })
 export class ProductService {
-  private readonly apiUrl = 'http://54.253.18.25:5000/api/products';
-  private readonly categoryUrl = 'http://54.253.18.25:5000/api/categories';
+  private readonly apiUrl = 'http://16.176.174.48:5000/api/products';
+  private readonly categoryUrl = 'http://16.176.174.48:5000/api/categories';
 
   constructor(private http: HttpClient) {}
 
