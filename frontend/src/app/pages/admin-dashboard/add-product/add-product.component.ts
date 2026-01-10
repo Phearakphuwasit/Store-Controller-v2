@@ -7,12 +7,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgIconComponent } from '@ng-icons/core';
 import { ProductService, Product, Category } from '../../../services/product.service';
 
@@ -26,7 +21,7 @@ import { ProductService, Product, Category } from '../../../services/product.ser
 export class AddProductComponent implements OnInit {
   @Output() productAdded = new EventEmitter<Product>();
   @Output() close = new EventEmitter<void>();
-
+  feedback: { message: string; type: 'success' | 'error' | null } = { message: '', type: null };
   productForm!: FormGroup;
   categories: Category[] = [];
 
@@ -101,7 +96,10 @@ export class AddProductComponent implements OnInit {
       error: (err) => {
         console.error('Create product error:', err);
         this.isLoading = false;
-        alert(err?.error?.message || 'Failed to create product');
+        this.feedback = {
+          message: err?.error?.message || 'Critical Error: System failed to save product.',
+          type: 'error',
+        };
         this.cd.markForCheck();
       },
     });
@@ -126,18 +124,19 @@ export class AddProductComponent implements OnInit {
 
   private handleSuccess(product: Product): void {
     this.isLoading = false;
-    this.productForm.reset({
-      name: '',
-      description: '',
-      category: '',
-      price: 0,
-      stock: 0,
-    });
+    this.feedback = { message: 'Product initialized successfully!', type: 'success' };
+
+    this.productForm.reset({ price: 0, stock: 0 });
     this.selectedFile = null;
     this.imagePreview = null;
 
     this.productAdded.emit(product);
-    this.close.emit();
+    setTimeout(() => {
+      this.close.emit();
+      this.feedback.type = null;
+      this.cd.markForCheck();
+    }, 2000);
+
     this.cd.markForCheck();
   }
 

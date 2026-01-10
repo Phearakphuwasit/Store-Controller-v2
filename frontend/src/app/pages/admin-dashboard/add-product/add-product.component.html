@@ -16,137 +16,114 @@
       </button>
     </header>
 
-<form
-  [formGroup]="productForm"
-  (ngSubmit)="onSubmit()"
-  class="p-8 space-y-8 max-h-[75vh] overflow-y-auto custom-scrollbar"
->
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()"
+      class="p-8 space-y-8 max-h-[75vh] overflow-y-auto custom-scrollbar">
 
-  <!-- IMAGE UPLOAD -->
-  <div class="flex flex-col items-center justify-center">
-    <label for="file-upload" class="relative cursor-pointer group">
-      <div
-        class="w-32 h-32 rounded-3xl border-2 border-dashed border-slate-700 bg-slate-800/50 flex items-center justify-center overflow-hidden group-hover:border-blue-500 group-hover:bg-slate-800 transition-all duration-300"
-      >
-        <img
-          *ngIf="imagePreview"
-          [src]="imagePreview"
-          class="w-full h-full object-cover"
-        />
-        <div *ngIf="!imagePreview" class="text-center">
-          <ng-icon
-            name="heroPhoto"
-            size="32"
-            class="text-slate-500 group-hover:text-blue-400 transition-colors"
-          ></ng-icon>
-          <span
-            class="block text-[10px] mt-1 text-slate-500 font-medium uppercase tracking-wider"
-            >Add Photo</span
-          >
+      <!-- IMAGE UPLOAD -->
+      <div class="flex flex-col items-center justify-center">
+        <label for="file-upload" class="relative cursor-pointer group">
+          <div
+            class="w-32 h-32 rounded-3xl border-2 border-dashed border-slate-700 bg-slate-800/50 flex items-center justify-center overflow-hidden group-hover:border-blue-500 group-hover:bg-slate-800 transition-all duration-300">
+            <img *ngIf="imagePreview" [src]="imagePreview" class="w-full h-full object-cover" />
+            <div *ngIf="!imagePreview" class="text-center">
+              <ng-icon name="heroPhoto" size="32"
+                class="text-slate-500 group-hover:text-blue-400 transition-colors"></ng-icon>
+              <span class="block text-[10px] mt-1 text-slate-500 font-medium uppercase tracking-wider">Add Photo</span>
+            </div>
+          </div>
+          <input id="file-upload" type="file" class="hidden" (change)="onFileSelected($event)" accept="image/*" />
+        </label>
+      </div>
+
+      <!-- FORM FIELDS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+
+        <!-- NAME -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-slate-300 mb-2">Product Name</label>
+          <input formControlName="name" type="text" placeholder="Enter product name"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" />
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-slate-300 mb-2">Description</label>
+          <textarea formControlName="description" rows="3" placeholder="Describe the key features..."
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none"></textarea>
+        </div>
+
+        <!-- CATEGORY -->
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Category</label>
+          <select formControlName="category"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all appearance-none cursor-pointer">
+            <option value="" disabled>Select category</option>
+            <option *ngFor="let cat of categories" [value]="cat._id">{{ cat.name }}</option>
+          </select>
+        </div>
+
+        <!-- PRICE -->
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Price ($)</label>
+          <input formControlName="price" type="number" placeholder="0.00"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" />
+        </div>
+
+        <!-- STOCK -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-slate-300 mb-2">Stock Quantity</label>
+          <input formControlName="stock" type="number" placeholder="Enter amount"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all" />
         </div>
       </div>
-      <input
-        id="file-upload"
-        type="file"
-        class="hidden"
-        (change)="onFileSelected($event)"
-        accept="image/*"
-      />
-    </label>
-  </div>
 
-  <!-- FORM FIELDS -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+      <!-- ACTION BUTTONS -->
+      <div class="flex items-center justify-end gap-4 pt-6 border-t border-slate-800">
 
-    <!-- NAME -->
-    <div class="md:col-span-2">
-      <label class="block text-sm font-medium text-slate-300 mb-2">Product Name</label>
-      <input
-        formControlName="name"
-        type="text"
-        placeholder="Enter product name"
-        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-      />
-    </div>
+        <!-- CANCEL -->
+        <button type="button" (click)="onClose()"
+          class="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-semibold hover:bg-slate-800 hover:text-white transition-all">
+          Cancel
+        </button>
 
-    <!-- DESCRIPTION -->
-    <div class="md:col-span-2">
-      <label class="block text-sm font-medium text-slate-300 mb-2">Description</label>
-      <textarea
-        formControlName="description"
-        rows="3"
-        placeholder="Describe the key features..."
-        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none"
-      ></textarea>
-    </div>
+        <!-- SUBMIT -->
+        <button type="submit" [disabled]="productForm.invalid || isLoading"
+          class="relative px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale transition-all min-w-[160px]">
+          <span *ngIf="!isLoading">Create Product</span>
+          <div *ngIf="isLoading" class="flex items-center justify-center gap-2">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            <span>Processing...</span>
+          </div>
+        </button>
 
-    <!-- CATEGORY -->
-    <div>
-      <label class="block text-sm font-medium text-slate-300 mb-2">Category</label>
-      <select
-        formControlName="category"
-        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all appearance-none cursor-pointer"
-      >
-        <option value="" disabled>Select category</option>
-        <option *ngFor="let cat of categories" [value]="cat._id">{{ cat.name }}</option>
-      </select>
-    </div>
-
-    <!-- PRICE -->
-    <div>
-      <label class="block text-sm font-medium text-slate-300 mb-2">Price ($)</label>
-      <input
-        formControlName="price"
-        type="number"
-        placeholder="0.00"
-        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-      />
-    </div>
-
-    <!-- STOCK -->
-    <div class="md:col-span-2">
-      <label class="block text-sm font-medium text-slate-300 mb-2">Stock Quantity</label>
-      <input
-        formControlName="stock"
-        type="number"
-        placeholder="Enter amount"
-        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-      />
-    </div>
-  </div>
-
-  <!-- ACTION BUTTONS -->
-  <div class="flex items-center justify-end gap-4 pt-6 border-t border-slate-800">
-
-    <!-- CANCEL -->
-    <button
-      type="button"
-      (click)="onClose()"
-      class="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-semibold hover:bg-slate-800 hover:text-white transition-all"
-    >
-      Cancel
-    </button>
-
-    <!-- SUBMIT -->
-    <button
-      type="submit"
-      [disabled]="productForm.invalid || isLoading"
-      class="relative px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale transition-all min-w-[160px]"
-    >
-      <span *ngIf="!isLoading">Create Product</span>
-      <div *ngIf="isLoading" class="flex items-center justify-center gap-2">
-        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-          </path>
-        </svg>
-        <span>Processing...</span>
       </div>
-    </button>
-
+    </form>
   </div>
-</form>
+</div>
 
+<div *ngIf="feedback.type" 
+     [ngClass]="{
+       'bg-emerald-500 text-white': feedback.type === 'success',
+       'bg-rose-600 text-white': feedback.type === 'error'
+     }"
+     class="mb-6 p-4 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+  
+  <ng-icon [name]="feedback.type === 'success' ? 'heroCheckCircle' : 'heroExclamationTriangle'" size="20"></ng-icon>
+  
+  <div class="flex-1">
+    <p class="text-xs font-black uppercase tracking-widest">
+      {{ feedback.type === 'success' ? 'System Update' : 'Process Halted' }}
+    </p>
+    <p class="text-sm font-medium">{{ feedback.message }}</p>
   </div>
+
+  <button (click)="feedback.type = null" class="opacity-50 hover:opacity-100">
+    <ng-icon name="heroXMark" size="18"></ng-icon>
+  </button>
 </div>

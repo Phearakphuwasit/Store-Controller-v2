@@ -45,8 +45,8 @@ const productSchema = new mongoose.Schema({
 });
 
 // AUTO-GENERATE SLUG & UPDATE STATUS
-productSchema.pre('save', function(next) {
-  // Generate Slug
+productSchema.pre('save', async function() {
+  // 1. Generate Slug
   if (this.isModified('name')) {
     this.slug = this.name
       .toLowerCase()
@@ -55,7 +55,7 @@ productSchema.pre('save', function(next) {
       .replace(/[^\w-]+/g, '');
   }
 
-  // Auto-set status based on stock count
+  // 2. Auto-set status based on stock count
   if (this.stock <= 0) {
     this.status = 'Out of Stock';
   } else if (this.stock <= 5) {
@@ -64,7 +64,8 @@ productSchema.pre('save', function(next) {
     this.status = 'In Stock';
   }
 
-  next();
+  // NOTE: No next() call here. 
+  // Returning or finishing the function resolves the promise.
 });
 
 module.exports = mongoose.model('Product', productSchema);
