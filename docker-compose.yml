@@ -1,15 +1,17 @@
+version: "3.8"
+
 services:
   backend:
     build: ./backend
     container_name: store-backend
-    # Make sure to create backend/.env or remove this line if you don't need env vars
     env_file:
       - ./backend/.env
     ports:
       - "5000:5000"
     volumes:
       - ./backend/uploads:/app/uploads
-    restart: unless-stopped
+    restart: always
+    mem_limit: 400m
 
   frontend:
     build: ./frontend
@@ -18,4 +20,5 @@ services:
       - "80:80"
     depends_on:
       - backend
-    restart: unless-stopped
+    restart: always
+    mem_limit: 200m

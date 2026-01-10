@@ -1,21 +1,26 @@
-# Use Node LTS
+# Use Node.js LTS (lightweight)
 FROM node:18-alpine
 
-# Set working directory
+# Create app directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy dependency files first (better caching)
 COPY package*.json ./
-RUN npm ci --only=production
 
-# Copy backend source code
+# Install production dependencies only
+RUN npm ci --omit=dev
+
+# Copy the rest of the backend source code
 COPY . .
 
-# Set environment to production
+# Ensure uploads directory exists (for volume mount)
+RUN mkdir -p /app/uploads
+
+# Set environment
 ENV NODE_ENV=production
 
 # Expose backend port
 EXPOSE 5000
 
-# Start backend
+# Start the backend
 CMD ["node", "server.js"]

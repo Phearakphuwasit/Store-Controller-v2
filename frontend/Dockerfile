@@ -1,26 +1,38 @@
-# Stage 1: Build Angular app
-FROM node:22-alpine AS build
+# ---------- Stage 1: Build Angular app ----------
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy dependency files first
 COPY package*.json ./
+
+# Install dependencies
 RUN npm ci
 
-# Copy the rest of the source code
+# Copy source code
 COPY . .
 
-# Build Angular app in production mode
-RUN npm run build -- --configuration production
+# Prevent OOM (EC2 Free Tier)
+ENV NODE_OPTIONS=--max_old_space_size=512
 
-# Stage 2: Serve with Nginx
+# Build Angular in production
+RUN npm run build --configuration production
+
+
+# ---------- Stage 2: Serve with Nginx ----------
 FROM nginx:alpine
 
-# Copy built Angular files from stage 1
+# Remove default Nginx static files
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy built Angular files
 COPY --from=build /app/dist/store_controller /usr/share/nginx/html
 
 # Copy custom Nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Expose HTTP
 EXPOSE 80
+
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
