@@ -45,6 +45,7 @@ import {
   heroFire,
   heroShieldCheck,
   heroUserCircle,
+  heroDocumentText,
 } from '@ng-icons/heroicons/outline';
 
 @Component({
@@ -77,7 +78,6 @@ import {
       heroClock,
       heroExclamationTriangle,
       heroArchiveBox,
-      // PROVIDE THE NEW ICONS HERE
       heroCpuChip,
       heroCheckBadge,
       heroPresentationChartLine,
@@ -86,6 +86,7 @@ import {
       heroFire,
       heroShieldCheck,
       heroUserCircle,
+      heroDocumentText,
     }),
   ],
 })
@@ -103,6 +104,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   productToDeleteId: string | null = null;
   categoryStats: any[] = [];
   activeFilterLabel: string = '';
+  isUpdateModalOpen = false;
+  selectedProduct: Product | null = null;
+  newStockValue: number = 0;
 
   today: Date = new Date();
   username: string = '';
@@ -127,6 +131,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   private sub = new Subscription();
   private baseUrl = 'http://16.176.174.48:5000';
+  private processData(products: Product[]): void {
+    this.products = products;
+    this.filteredProducts = [...products];
+    this.calculateStats();
+    this.calculateCategoryStats();
+  }
 
   isBulkMode = false;
 
@@ -284,17 +294,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   //=================== LOAD Products ===================//
   loadProducts(): void {
-    // Re-fetch from server to ensure data integrity
     this.productService.getProducts().subscribe({
       next: (data) => {
-        this.products = data;
-        this.filteredProducts = data;
-        this.calculateStats();
+        this.processData(data);
+        this.alertService.show('Ledger Synchronized', 'success');
         this.cd.markForCheck();
       },
-      error: (err) => {
-        this.alertService.show('Failed to sync with server', 'error');
-      },
+      error: () => this.alertService.show('Sync failed', 'error'),
     });
   }
   // --------------------------------------------- DASHBOARD DATA --------------------------------------------
@@ -306,16 +312,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         stats: this.productService.getStats(),
       }).subscribe({
         next: ({ products, stats }) => {
-          this.products = products;
-          this.filteredProducts = [...products];
           this.stats = stats;
+          this.processData(products); // Use the helper here!
           this.isLoading = false;
           this.cd.markForCheck();
         },
-        error: (err: HttpErrorResponse) => {
+        error: (err) => {
           this.isLoading = false;
-          console.error('Dashboard load error:', err);
-          this.alertService.show('Failed to load dashboard', 'error');
+          this.alertService.show('Failed to connect to EC2', 'error');
         },
       })
     );
@@ -478,5 +482,81 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.loadProducts(); // Refresh list
       });
     }
+  }
+  /**
+   * Opens the dialog and initializes the current stock value
+   */
+  openEditModal(product: Product): void {
+    this.selectedProduct = product;
+    this.newStockValue = product.stock;
+    this.isUpdateModalOpen = true;
+    this.cd.markForCheck();
+  }
+
+  /**
+   * Packages the data as FormData and sends to the backend
+   */
+  saveStockUpdate(): void {
+    if (!this.selectedProduct) return;
+
+    const formData = new FormData();
+    formData.append('stock', this.newStockValue.toString());
+    formData.append('name', this.selectedProduct.name);
+    formData.append('price', this.selectedProduct.price.toString());
+
+    // Handle category object safely
+    const catId =
+      typeof this.selectedProduct.category === 'object'
+        ? this.selectedProduct.category?._id
+        : this.selectedProduct.category;
+    if (catId) formData.append('category', catId);
+
+    this.productService.updateProduct(this.selectedProduct._id, formData).subscribe({
+      next: (res) => {
+        if (res.success) {
+          // Update local UI immediately
+          if (this.selectedProduct) this.selectedProduct.stock = this.newStockValue;
+          this.isUpdateModalOpen = false;
+          this.cd.markForCheck();
+          // Stats are automatically refreshed if your service has a tap() refresh
+        }
+      },
+      error: (err) => console.error('Update failed', err),
+    });
+  }
+
+  calculateCategoryStats(): void {
+    if (!this.products || this.products.length === 0) {
+      this.categoryStats = [];
+      this.cd.markForCheck(); // Ensure empty state renders
+      return;
+    }
+
+    const map = new Map<string, number>();
+    let totalPortfolioValue = 0;
+
+    this.products.forEach((p) => {
+      // 1. Determine Category Name (Handles strings, objects, or missing data)
+      const catName: string =
+        typeof p.category === 'object'
+          ? p.category?.name || 'Uncategorized'
+          : p.category || 'Uncategorized';
+
+      // 2. Calculate individual product asset value
+      const productValue = (p.price || 0) * (p.stock || 0);
+      totalPortfolioValue += productValue;
+
+      // 3. FIX: Use 'catName' (which is guaranteed to be a string) as the Map key
+      const currentVal = map.get(catName) || 0;
+      map.set(catName, currentVal + productValue);
+    });
+    this.categoryStats = Array.from(map, ([name, value]) => ({
+      name,
+      value,
+      percentage: totalPortfolioValue > 0 ? (value / totalPortfolioValue) * 100 : 0,
+    })).sort((a, b) => b.value - a.value);
+
+    // 5. Trigger UI update
+    this.cd.markForCheck();
   }
 }

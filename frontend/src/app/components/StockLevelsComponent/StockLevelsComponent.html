@@ -1,0 +1,55 @@
+<div class="p-8 bg-slate-50 min-h-screen">
+  <div class="flex justify-between items-end mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-slate-900 tracking-tight">Stock Inventory</h1>
+      <p class="text-slate-500 font-medium">Monitor and adjust real-time stock levels.</p>
+    </div>
+    <button (click)="loadProducts()" class="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-100 transition-all">
+      <ng-icon name="heroArrowPath" size="20"></ng-icon>
+    </button>
+  </div>
+
+  <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-slate-50/50 border-b border-slate-100">
+          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Product</th>
+          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Current Stock</th>
+          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Status</th>
+          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of products" class="border-b border-slate-50 last:border-0 hover:bg-slate-50/30 transition-colors">
+          <td class="px-8 py-6">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center">
+                <img *ngIf="p.image" [src]="'http://16.176.174.48:5000/' + p.image" class="w-full h-full object-cover">
+                <span *ngIf="!p.image" class="font-black text-slate-300">{{ p.name.charAt(0) }}</span>
+              </div>
+              <span class="font-bold text-slate-900">{{ p.name }}</span>
+            </div>
+          </td>
+          <td class="px-8 py-6 text-center font-black text-lg text-slate-700">{{ p.stock }}</td>
+          <td class="px-8 py-6">
+            <div class="flex justify-center">
+              <span [ngClass]="p.stock <= 5 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'" 
+                    class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                {{ p.stock <= 5 ? 'Low Stock' : 'Healthy' }}
+              </span>
+            </div>
+          </td>
+          <td class="px-8 py-6 text-right">
+            <button (click)="openUpdateModal(p)" 
+                    class="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-indigo-600 transition-all active:scale-95">
+              Update Stock
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="isUpdateModalOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    </div>
+</div>
