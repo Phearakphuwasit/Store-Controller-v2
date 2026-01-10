@@ -504,7 +504,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     formData.append('name', this.selectedProduct.name);
     formData.append('price', this.selectedProduct.price.toString());
 
-    // Handle category object safely
     const catId =
       typeof this.selectedProduct.category === 'object'
         ? this.selectedProduct.category?._id
@@ -514,11 +513,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.productService.updateProduct(this.selectedProduct._id, formData).subscribe({
       next: (res) => {
         if (res.success) {
-          // Update local UI immediately
           if (this.selectedProduct) this.selectedProduct.stock = this.newStockValue;
           this.isUpdateModalOpen = false;
           this.cd.markForCheck();
-          // Stats are automatically refreshed if your service has a tap() refresh
         }
       },
       error: (err) => console.error('Update failed', err),
@@ -528,7 +525,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   calculateCategoryStats(): void {
     if (!this.products || this.products.length === 0) {
       this.categoryStats = [];
-      this.cd.markForCheck(); // Ensure empty state renders
+      this.cd.markForCheck();
       return;
     }
 
@@ -536,17 +533,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     let totalPortfolioValue = 0;
 
     this.products.forEach((p) => {
-      // 1. Determine Category Name (Handles strings, objects, or missing data)
       const catName: string =
         typeof p.category === 'object'
           ? p.category?.name || 'Uncategorized'
           : p.category || 'Uncategorized';
 
-      // 2. Calculate individual product asset value
       const productValue = (p.price || 0) * (p.stock || 0);
       totalPortfolioValue += productValue;
-
-      // 3. FIX: Use 'catName' (which is guaranteed to be a string) as the Map key
       const currentVal = map.get(catName) || 0;
       map.set(catName, currentVal + productValue);
     });
