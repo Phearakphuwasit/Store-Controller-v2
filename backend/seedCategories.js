@@ -1,14 +1,12 @@
 // seedCategories.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Category = require('./models/Category'); // adjust path if needed
+const Category = require('./models/Category'); 
 
-// Connect to MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Categories to add
 const categories = [
   { name: 'Electronics', description: 'All kinds of electronic products' },
   { name: 'Fashion', description: 'Clothing, accessories, and more' },
@@ -20,7 +18,6 @@ const categories = [
   { name: 'Automotive', description: 'Car accessories and automotive products' }
 ];
 
-// Seed function
 async function seedCategories() {
   try {
     for (let cat of categories) {

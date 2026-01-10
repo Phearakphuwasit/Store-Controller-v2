@@ -114,18 +114,17 @@ UserSchema.virtual("unreadNotificationsCount").get(function () {
 /* =========================
    Hooks
 ========================= */
-UserSchema.pre("save", async function (next) {
+UserSchema.pre("save", async function () {
   // Normalize email
   if (this.isModified("email")) {
     this.email = this.email.trim().toLowerCase();
   }
 
   // Hash password only if modified
-  if (!this.isModified("password")) return next();
-
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  if (this.isModified("password")) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
 });
 
 /* =========================
@@ -150,7 +149,6 @@ UserSchema.methods.addNotification = async function (
     isRead: false,
   });
 
-  // Keep only latest 20 notifications
   if (this.notifications.length > 20) {
     this.notifications = this.notifications.slice(0, 20);
   }

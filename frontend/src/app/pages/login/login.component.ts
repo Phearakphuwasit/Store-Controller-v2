@@ -24,7 +24,6 @@ export class LoginComponent {
     });
   }
 
-  // Getter for easy template access
   get f() {
     return this.loginForm.controls;
   }

@@ -30,11 +30,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   password = { current: '', new: '', confirm: '' };
 
   ngOnInit(): void {
-    // Subscribe to currentUser from AuthService
     this.subscription.add(
       this.authService.currentUser.subscribe((user) => {
         if (user) {
-          // Deep clone to prevent direct mutation
           this.currentUser = JSON.parse(JSON.stringify(user));
           this.cd.markForCheck();
         }
