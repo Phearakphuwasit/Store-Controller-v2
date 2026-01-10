@@ -1,34 +1,17 @@
-# ---------- Stage 1: Build Angular app ----------
-FROM node:18-alpine AS build
+# -----------------------------
+# Frontend Dockerfile (EC2 Free Tier Safe)
+# -----------------------------
 
-WORKDIR /app
-
-# Copy dependency files first
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY . .
-
-# Prevent OOM (EC2 Free Tier)
-ENV NODE_OPTIONS=--max_old_space_size=512
-
-# Build Angular in production
-RUN npm run build --configuration production
-
-
-# ---------- Stage: Serve pre-built Angular ----------
+# Use Nginx only — no Node build
 FROM nginx:alpine
 
 # Remove default Nginx static files
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy pre-built Angular browser folder
+# Copy pre-built Angular build (browser folder)
 COPY dist/store_controller/browser /usr/share/nginx/html
 
-# Copy custom Nginx config
+# Copy custom Nginx config for SPA + API proxy
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose HTTP
