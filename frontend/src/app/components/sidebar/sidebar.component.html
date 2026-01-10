@@ -35,46 +35,60 @@
     <span class="text-xl font-black text-white tracking-tight italic">STORE<span class="text-blue-500">CTRL</span></span>
   </div>
 
-  <nav class="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar space-y-8">
-    <div>
-      <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Inventory Management</p>
-      <ul class="space-y-1">
-        <ng-container *ngFor="let item of inventoryMenu">
-          <li *ngIf="canAccess(item)">
-            <a [routerLink]="item.path"
-               (click)="closeMobileMenu()" 
-               routerLinkActive="bg-blue-600 text-white shadow-xl shadow-blue-600/20 active-link"
-               class="group flex items-center justify-between px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200">
-              <div class="flex items-center">
-                <span class="mr-3 opacity-70 group-hover:opacity-100" [innerHTML]="getSafeIcon(item.icon)"></span>
-                <span class="font-bold text-sm">{{item.label}}</span>
-              </div>
-              <span *ngIf="item.badge" class="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-lg font-black">
-                {{item.badge}}
-              </span>
-            </a>
-          </li>
-        </ng-container>
-      </ul>
-    </div>
-
-    <div>
-      <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Logistics</p>
-      <ul class="space-y-1">
-        <ng-container *ngFor="let item of logisticsMenu">
-          <li *ngIf="canAccess(item)">
-            <a [routerLink]="item.path" 
-               (click)="closeMobileMenu()"
-               routerLinkActive="bg-blue-600 text-white shadow-lg"
-               class="flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-              <span class="mr-3 opacity-70" [innerHTML]="getSafeIcon(item.icon)"></span>
+<nav class="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar space-y-8">
+  <div>
+    <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Inventory Management</p>
+    <ul class="space-y-1">
+      <ng-container *ngFor="let item of inventoryMenu">
+        <li *ngIf="canAccess(item)">
+          <a [routerLink]="item.path"
+             (click)="closeMobileMenu()" 
+             routerLinkActive="bg-blue-600 text-white shadow-xl shadow-blue-600/20 active-link"
+             class="group flex items-center justify-between px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200">
+            
+            <div class="flex items-center">
+              <span class="mr-3 opacity-70 group-hover:opacity-100 transition-opacity" [innerHTML]="getSafeIcon(item.icon)"></span>
               <span class="font-bold text-sm">{{item.label}}</span>
-            </a>
-          </li>
-        </ng-container>
-      </ul>
-    </div>
-  </nav>
+            </div>
+
+            <span *ngIf="item.badge !== undefined && item.badge > 0" 
+                  [ngClass]="{
+                    'bg-blue-500/20 text-blue-400': item.path === '/inventory/products',
+                    'bg-rose-500/20 text-rose-400 animate-pulse-subtle': item.path === '/inventory/stock'
+                  }"
+                  class="text-[10px] px-2 py-0.5 rounded-lg font-black min-w-[20px] text-center">
+              {{item.badge}}
+            </span>
+          </a>
+        </li>
+      </ng-container>
+    </ul>
+  </div>
+
+  <div>
+    <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Logistics</p>
+    <ul class="space-y-1">
+      <ng-container *ngFor="let item of logisticsMenu">
+        <li *ngIf="canAccess(item)">
+          <a [routerLink]="item.path" 
+             (click)="closeMobileMenu()"
+             routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-600/20 active-link"
+             class="group flex items-center justify-between px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+            
+            <div class="flex items-center">
+              <span class="mr-3 opacity-70 group-hover:opacity-100" [innerHTML]="getSafeIcon(item.icon)"></span>
+              <span class="font-bold text-sm">{{item.label}}</span>
+            </div>
+
+            <span *ngIf="item.badge" class="bg-slate-500/20 text-slate-400 text-[10px] px-2 py-0.5 rounded-lg font-black">
+              {{item.badge}}
+            </span>
+          </a>
+        </li>
+      </ng-container>
+    </ul>
+  </div>
+</nav>
 
   <div class="p-4 border-t border-white/5 bg-slate-900/50 backdrop-blur">
     <div class="bg-white/5 rounded-[2rem] p-4 border border-white/5 shadow-inner">

@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
+import { Product, ProductService } from '../../services/product.service';
 
 interface MenuItem {
   label: string;
@@ -23,12 +24,15 @@ interface MenuItem {
 export class SidebarComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private sanitizer = inject(DomSanitizer);
+  private productService = inject(ProductService);
 
   currentUser: any = null;
   private subscriptions = new Subscription();
   imageTimestamp: number = Date.now();
   private previousProfilePicture: string = '';
+  isMobileMenuOpen = false;
 
+  // Inventory Menu with dynamic badge placeholders
   inventoryMenu: MenuItem[] = [
     {
       label: 'Dashboard',
@@ -38,7 +42,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     {
       label: 'Products',
       path: '/inventory/products',
-      badge: 12,
       roles: ['admin'],
       icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>`,
     },
@@ -87,20 +90,33 @@ export class SidebarComponent implements OnInit, OnDestroy {
         }
       })
     );
+
+// REAL-TIME BADGE UPDATE LOGIC
+  this.subscriptions.add(
+    this.productService.products$.subscribe((products: Product[]) => { // Added Product[]
+      if (products) {
+        const totalProducts = products.length;
+        
+        // Explicitly typing 'p' as Product allows access to p.stock
+        const lowStockCount = products.filter((p: Product) => p.stock <= 5).length;
+
+        // Update the menu objects reference
+        this.updateBadges(totalProducts, lowStockCount);
+      }
+    })
+  );
   }
 
-  isMobileMenuOpen = false;
-
-  toggleMobileMenu() {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
-  }
-
-  closeMobileMenu() {
-    this.isMobileMenuOpen = false;
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+  private updateBadges(total: number, low: number): void {
+    this.inventoryMenu = this.inventoryMenu.map((item) => {
+      if (item.path === '/inventory/products') {
+        return { ...item, badge: total };
+      }
+      if (item.path === '/inventory/stock') {
+        return { ...item, badge: low };
+      }
+      return item;
+    });
   }
 
   // Helpers
@@ -114,22 +130,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return this.sanitizer.bypassSecurityTrustHtml(svg || '');
   }
 
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
   getProfilePicture(): string {
     if (!this.currentUser?.profilePicture) {
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(
         this.currentUser?.fullName || 'User'
       )}`;
     }
-
     const path = this.currentUser.profilePicture;
-
-    // If the database already stored the full URL, just use it
-    if (path.startsWith('http')) {
-      return `${path}?t=${this.imageTimestamp}`;
-    }
-
-    // Otherwise, attach your EC2 IP manually
-    return `http://16.176.174.48:5000/${path}?t=${this.imageTimestamp}`;
+    return path.startsWith('http')
+      ? `${path}?t=${this.imageTimestamp}`
+      : `http://16.176.174.48:5000/${path}?t=${this.imageTimestamp}`;
   }
 
   onImageError(event: any): void {

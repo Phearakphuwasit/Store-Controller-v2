@@ -8,6 +8,14 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { 
+  heroXMark, 
+  heroCheckCircle, 
+  heroExclamationTriangle, 
+  heroInformationCircle, 
+  heroXCircle 
+} from '@ng-icons/heroicons/outline';
 
 interface Notification {
   _id: string;
@@ -21,8 +29,16 @@ interface Notification {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './notifications.component.html'
+  imports: [CommonModule , NgIconComponent],
+  templateUrl: './notifications.component.html',
+  styleUrls: ['./notifications.component.css'],
+  viewProviders: [provideIcons({
+    heroXMark,
+    heroCheckCircle,
+    heroExclamationTriangle,
+    heroInformationCircle,
+    heroXCircle
+  })]
 })
 export class NotificationComponent implements OnInit {
   private http = inject(HttpClient);
@@ -119,4 +135,13 @@ export class NotificationComponent implements OnInit {
       this.cd.markForCheck();
     });
   }
+
+  getIconName(type: string): string {
+  switch (type) {
+    case 'success': return 'heroCheckCircle';
+    case 'warning': return 'heroExclamationTriangle';
+    case 'error': return 'heroXCircle';
+    default: return 'heroInformationCircle';
+  }
+}
 }

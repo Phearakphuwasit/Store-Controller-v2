@@ -3,12 +3,16 @@ import { CommonModule } from '@angular/common';
 import { AlertService } from '../../services/alert.service';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { heroXMark } from '@ng-icons/heroicons/outline';
 
 @Component({
   selector: 'app-notification-view',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgIconComponent],
   templateUrl: './notification-view.component.html',
+  styleUrls: ['./notification-view.component.css'],
+  viewProviders: [provideIcons({ heroXMark })]
 })
 export class NotificationViewComponent {
   private alertService = inject(AlertService);
@@ -16,7 +20,7 @@ export class NotificationViewComponent {
   private authService = inject(AuthService);
   private cd = inject(ChangeDetectorRef);
 
-  @Input() notification: any;   // Notification object from parent
+  @Input() notification: any;
   @Input() isOpen: boolean = false;
 
   baseUrl = 'http://16.176.174.48:5000/api/auth';
@@ -28,20 +32,22 @@ export class NotificationViewComponent {
 
   markAsRead() {
     if (!this.notification || this.notification.read) return;
-
-    // Call backend to mark as read
-    this.http.put(`${this.baseUrl}/notifications/read`, {}).subscribe({
+    const notificationId = this.notification._id;
+    this.http.put(`${this.baseUrl}/notifications/read/${notificationId}`, {}).subscribe({
       next: () => {
         this.notification.read = true;
-        this.alertService.show('Notification marked as read', 'success');
         this.cd.markForCheck();
       },
-      error: () => this.alertService.show('Failed to mark notification as read', 'error')
+      error: () => this.alertService.show('Failed to sync read status', 'error')
     });
   }
 
-  open() {
-    this.isOpen = true;
-    this.markAsRead();
+  getIconName(type: string): string {
+  switch (type) {
+    case 'success': return 'heroCheckCircle';
+    case 'warning': return 'heroExclamationTriangle';
+    case 'error': return 'heroXCircle';
+    default: return 'heroInformationCircle';
   }
+}
 }

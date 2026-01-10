@@ -18,6 +18,23 @@ import { NotificationComponent } from '../../components/notifications/notificati
 import { ExportButtonComponent } from '../../components/export-button/export-button.component';
 import { AlertService } from '../../services/alert.service';
 import { AuthService } from '../../services/auth.service';
+import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import {
+  heroMagnifyingGlass,
+  heroAdjustmentsHorizontal,
+  heroTag,
+  heroPencilSquare,
+  heroTrash,
+  heroChevronRight,
+  heroBell,
+  heroPlus,
+  heroTrophy,
+  heroSparkles,
+  heroArrowTrendingUp,
+  heroClock,
+  heroExclamationTriangle,
+  heroArchiveBox,
+} from '@ng-icons/heroicons/outline';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -28,9 +45,28 @@ import { AuthService } from '../../services/auth.service';
     AddProductComponent,
     NotificationComponent,
     ExportButtonComponent,
+    NgIconComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  viewProviders: [
+    provideIcons({
+      heroMagnifyingGlass,
+      heroAdjustmentsHorizontal,
+      heroTag,
+      heroPencilSquare,
+      heroTrash,
+      heroChevronRight,
+      heroBell,
+      heroPlus,
+      heroTrophy,
+      heroSparkles,
+      heroArrowTrendingUp,
+      heroClock,
+      heroExclamationTriangle,
+      heroArchiveBox,
+    }),
+  ],
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
@@ -41,26 +77,46 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private alertService = inject(AlertService);
 
   today: Date = new Date();
-  username: string = 'Admin';
+  username: string = '';
+  stats: ProductStats = {
+    totalProducts: 0,
+    lowStock: 0,
+    outOfStock: 0,
+    totalValue: 0,
+    bestSellerName: 'N/A',
+  };
   currentUser: any = {
     location: { city: '', country: '' },
-    role: 'User',
+    role: '',
     profilePicture: '',
   };
-
   products: Product[] = [];
   filteredProducts: Product[] = [];
-  stats: ProductStats = { totalProducts: 0, lowStock: 0, outOfStock: 0, totalValue: 0 };
+  isLoading: boolean = true;
   categories: Category[] = [];
-
   showAddProductModal: boolean = false;
   searchTerm: string = '';
 
   private sub = new Subscription();
   private baseUrl = 'http://16.176.174.48:5000';
 
+  isBulkMode = false;
+
+  openBulkUpdate() {
+    this.isBulkMode = !this.isBulkMode;
+
+    console.log('Bulk update mode activated');
+
+    if (this.isBulkMode) {
+      this.filteredProducts = this.products.filter((p) => p.stock <= 5);
+    } else {
+      this.filteredProducts = [...this.products];
+    }
+  }
+
   ngOnInit(): void {
-    this.fetchProfile(); // Fetch JWT-based profile
+    this.fetchProfile();
+    this.loadInventory();
     this.loadDashboardData();
     this.loadCategories();
 
@@ -75,7 +131,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
-  // ---------------- PROFILE WITH JWT ----------------
+  // ---------------------------------- PROFILE WITH JWT -----------------------------------
   fetchProfile(): void {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -119,7 +175,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-  // ---------------- SYNC LOCATION ----------------
+  // ------------------------------------------ SYNC LOCATION ----------------------------------
   async syncLocation() {
     try {
       const coords = await this.locationService.getPosition();
@@ -147,8 +203,32 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ---------------- DASHBOARD DATA ----------------
+  // --------------------------------------------- calculateStats --------------------------------------------
+  calculateStats() {
+    this.stats.totalProducts = this.products.length;
+    this.stats.lowStock = this.products.filter((p) => p.stock <= 5).length;
+    this.stats.totalValue = this.products.reduce((acc, p) => acc + p.price * p.stock, 0);
+  }
+  // --------------------------------------------- loadInventory --------------------------------------------
+  loadInventory() {
+    this.isLoading = true;
+    this.productService.getProducts().subscribe({
+      next: (data) => {
+        this.products = data;
+        this.filteredProducts = data;
+        this.calculateStats();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Fetch failed', err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  // --------------------------------------------- DASHBOARD DATA --------------------------------------------
   loadDashboardData(): void {
+    this.isLoading = true; // Set loading to true
     this.sub.add(
       forkJoin({
         products: this.productService.getProducts(),
@@ -158,11 +238,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.products = products;
           this.filteredProducts = [...products];
           this.stats = stats;
+          this.isLoading = false; // Set loading to false
           this.cd.markForCheck();
         },
         error: (err: HttpErrorResponse) => {
+          this.isLoading = false;
           console.error('Dashboard load error:', err);
-          this.alertService.show(err.error?.message || 'Failed to load dashboard', 'error');
+          this.alertService.show('Failed to load dashboard', 'error');
         },
       })
     );
@@ -183,34 +265,33 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-// ---------------- FILTER ----------------
-applyFilter(): void {
-  const search = this.searchTerm.toLowerCase().trim();
+  // ------------------------------------------------- FILTER ------------------------------------------
+  applyFilter(): void {
+    const search = this.searchTerm.toLowerCase().trim();
 
-  this.filteredProducts = !search
-    ? [...this.products]
-    : this.products.filter((p) => {
-        // Safe conversion to string
-        let categoryName = '';
+    this.filteredProducts = !search
+      ? [...this.products]
+      : this.products.filter((p) => {
+          // Safe conversion to string
+          let categoryName = '';
 
-        if (p.category) {
-          // If category is object, use its name
-          if (typeof p.category === 'object' && 'name' in p.category && p.category.name) {
-            categoryName = p.category.name;
-          } else if (typeof p.category === 'string') {
-            categoryName = p.category;
+          if (p.category) {
+            // If category is object, use its name
+            if (typeof p.category === 'object' && 'name' in p.category && p.category.name) {
+              categoryName = p.category.name;
+            } else if (typeof p.category === 'string') {
+              categoryName = p.category;
+            }
           }
-        }
 
-        return (
-          p.name?.toLowerCase().includes(search) ||
-          categoryName.toLowerCase().includes(search)
-        );
-      });
+          return (
+            p.name?.toLowerCase().includes(search) || categoryName.toLowerCase().includes(search)
+          );
+        });
 
-  this.cd.markForCheck();
-}
-  // ---------------- DELETE PRODUCT ----------------
+    this.cd.markForCheck();
+  }
+  // --------------------------------------------- DELETE PRODUCT -------------------------------------
   deleteProduct(id: string): void {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
@@ -231,7 +312,7 @@ applyFilter(): void {
     );
   }
 
-  // ---------------- ADD PRODUCT ----------------
+  // --------------------------------------------- ADD PRODUCT --------------------------------------------
   onProductAdded(p: Product): void {
     this.alertService.show('New product added!', 'success');
     this.loadDashboardData();

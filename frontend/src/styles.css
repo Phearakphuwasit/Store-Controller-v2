@@ -1,15 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "tailwindcss";
+
 .label-dark {
   @apply block mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400;
 }
 
 .input-dark {
-  @apply w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3
-         text-sm text-slate-100 placeholder:text-slate-500
-         focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30
-         transition;
+  @apply w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition;
 }
 
 .error-text {
@@ -19,6 +17,7 @@
 .select-wrapper {
   position: relative;
 }
+
 .select-wrapper::after {
   content: '';
   position: absolute;
@@ -31,15 +30,21 @@
   transform: translateY(-50%) rotate(45deg);
   pointer-events: none;
 }
-/* Custom scrollbar for dropdowns */
-/* Custom animation for the dropdown */
+
 .animate-in {
   animation: fadeIn 0.2s ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Hide the export button when printing */

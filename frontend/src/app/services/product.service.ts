@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 
 /* =======================
    MODELS
@@ -21,6 +21,7 @@ export interface ProductStats {
   lowStock: number;
   outOfStock: number;
   totalValue: number;
+  bestSellerName?: string;
 }
 
 export interface Category {
@@ -39,16 +40,32 @@ export class ProductService {
   private readonly apiUrl = 'http://16.176.174.48:5000/api/products';
   private readonly categoryUrl = 'http://16.176.174.48:5000/api/categories';
 
-  constructor(private http: HttpClient) {}
+  private productsSubject = new BehaviorSubject<Product[]>([]);
+  products$ = this.productsSubject.asObservable();
+  constructor(private http: HttpClient) {
+    this.refreshProducts();
+  }
 
   /* =======================
      HELPERS
   ======================== */
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      Authorization: token ? `Bearer ${token}` : '',
-    });
+    return new HttpHeaders({ Authorization: token ? `Bearer ${token}` : '' });
+  }
+  /**
+   * REFRESH METHOD
+   * Updates the products$ stream for all subscribers (like the Sidebar)
+   */
+  refreshProducts(): void {
+    this.http
+      .get<{ success: boolean; products: Product[] }>(this.apiUrl, {
+        headers: this.getAuthHeaders(),
+      })
+      .pipe(map((res) => res.products ?? []))
+      .subscribe((products) => {
+        this.productsSubject.next(products);
+      });
   }
 
   /* =======================
@@ -57,11 +74,7 @@ export class ProductService {
 
   // Get all products
   getProducts(): Observable<Product[]> {
-    return this.http
-      .get<{ success: boolean; products: Product[] }>(this.apiUrl, {
-        headers: this.getAuthHeaders(),
-      })
-      .pipe(map((res) => res.products ?? []));
+    return this.products$; // Return the stream directly
   }
 
   // Get a single product by ID
@@ -73,28 +86,36 @@ export class ProductService {
       .pipe(map((res) => res.product));
   }
 
-  // Create a new product
   createProduct(formData: FormData): Observable<{ success: boolean; product: Product }> {
-    return this.http.post<{ success: boolean; product: Product }>(this.apiUrl, formData, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http
+      .post<{ success: boolean; product: Product }>(this.apiUrl, formData, {
+        headers: this.getAuthHeaders(),
+      })
+      .pipe(
+        tap(() => this.refreshProducts()) // Auto-refresh badges
+      );
   }
 
-  // Update an existing product
   updateProduct(
     id: string,
     formData: FormData
   ): Observable<{ success: boolean; product: Product }> {
-    return this.http.put<{ success: boolean; product: Product }>(`${this.apiUrl}/${id}`, formData, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http
+      .put<{ success: boolean; product: Product }>(`${this.apiUrl}/${id}`, formData, {
+        headers: this.getAuthHeaders(),
+      })
+      .pipe(
+        tap(() => this.refreshProducts()) // Auto-refresh badges
+      );
   }
 
   // Delete a product
-  deleteProduct(id: string): Observable<{ success: boolean }> {
+deleteProduct(id: string): Observable<{ success: boolean }> {
     return this.http.delete<{ success: boolean }>(`${this.apiUrl}/${id}`, {
       headers: this.getAuthHeaders(),
-    });
+    }).pipe(
+      tap(() => this.refreshProducts()) // Auto-refresh badges
+    );
   }
 
   /* =======================
