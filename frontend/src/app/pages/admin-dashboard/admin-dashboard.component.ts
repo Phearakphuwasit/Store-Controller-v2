@@ -210,22 +210,49 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.stats.totalValue = this.products.reduce((acc, p) => acc + p.price * p.stock, 0);
   }
   // --------------------------------------------- loadInventory --------------------------------------------
-  loadInventory() {
-    this.isLoading = true;
-    this.productService.getProducts().subscribe({
-      next: (data) => {
-        this.products = data;
-        this.filteredProducts = data;
-        this.calculateStats();
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Fetch failed', err);
-        this.isLoading = false;
-      },
-    });
-  }
+loadInventory() {
+  this.isLoading = true;
+  this.cd.markForCheck();
 
+  const startTime = Date.now();
+
+  this.productService.getProducts().subscribe({
+    next: (data: Product[]) => {
+      // Create a valid fallback that satisfies the Category interface
+      const unknownCategory: Category = {
+        _id: '0',
+        name: 'Uncategorized',
+        slug: 'uncategorized'
+      };
+
+      const normalizedData: Product[] = data.map(p => ({
+        ...p,
+        // If category is null/undefined, use our valid unknownCategory object
+        category: p.category ? p.category : unknownCategory,
+        stock: p.stock ?? 0,
+        price: p.price ?? 0
+      }));
+
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 500 - elapsed);
+
+      setTimeout(() => {
+        this.products = normalizedData;
+        this.filteredProducts = [...normalizedData];
+        this.calculateStats();
+        
+        this.isLoading = false;
+        this.cd.markForCheck();
+      }, remaining);
+    },
+    error: (err) => {
+      this.isLoading = false;
+      console.error('Fetch failed', err);
+      this.alertService.show('System sync failed.', 'error');
+      this.cd.markForCheck();
+    },
+  });
+}
   // --------------------------------------------- DASHBOARD DATA --------------------------------------------
   loadDashboardData(): void {
     this.isLoading = true; // Set loading to true
@@ -249,7 +276,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       })
     );
   }
-
+  // --------------------------------------------- LOAD CATEGORIES --------------------------------------------
   loadCategories(): void {
     this.sub.add(
       this.productService.getCategories().subscribe({
@@ -264,7 +291,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       })
     );
   }
-
   // ------------------------------------------------- FILTER ------------------------------------------
   applyFilter(): void {
     const search = this.searchTerm.toLowerCase().trim();
@@ -272,20 +298,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.filteredProducts = !search
       ? [...this.products]
       : this.products.filter((p) => {
-          // Safe conversion to string
-          let categoryName = '';
-
-          if (p.category) {
-            // If category is object, use its name
-            if (typeof p.category === 'object' && 'name' in p.category && p.category.name) {
-              categoryName = p.category.name;
-            } else if (typeof p.category === 'string') {
-              categoryName = p.category;
-            }
-          }
+          // Cleanly extract category name regardless of structure
+          const catName = (typeof p.category === 'object' ? p.category?.name : p.category) ?? '';
 
           return (
-            p.name?.toLowerCase().includes(search) || categoryName.toLowerCase().includes(search)
+            p.name?.toLowerCase().includes(search) ||
+            catName.toLowerCase().includes(search) ||
+            p._id?.toLowerCase().includes(search) // Allow searching by ID/SKU
           );
         });
 
@@ -313,9 +332,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // --------------------------------------------- ADD PRODUCT --------------------------------------------
-  onProductAdded(p: Product): void {
-    this.alertService.show('New product added!', 'success');
-    this.loadDashboardData();
+  onProductAdded(newProduct: Product): void {
+    this.alertService.show('Entry Initialized', 'success');
+
+    // Instead of a full reload, update local state for speed
+    this.products = [newProduct, ...this.products];
+    this.applyFilter();
+    this.calculateStats();
+
     this.closeAddProductModal();
   }
 

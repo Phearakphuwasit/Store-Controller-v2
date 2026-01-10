@@ -118,38 +118,47 @@
               <th class="px-6 py-4 text-right">Operations</th>
             </tr>
           </thead>
+
           <tbody class="divide-y-0">
+            <tr *ngIf="isLoading">
+              <td colspan="5" class="px-6 py-10 text-center">
+                <div class="flex flex-col items-center gap-2">
+                  <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Syncing Ledger...</span>
+                </div>
+              </td>
+            </tr>
 
             <tr *ngFor="let p of filteredProducts"
               class="group bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 shadow-sm border border-slate-100 dark:border-slate-800">
-              <td
-                class="px-6 py-5 first:rounded-l-2xl border-y border-l border-slate-100 dark:border-slate-800 group-hover:border-blue-200">
+              <td class="px-6 py-5 first:rounded-l-2xl border-y border-l border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-4">
                   <div
-                    class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold text-xs uppercase shadow-inner">
-                    {{ p.name.substring(0,2) }}
+                    class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shadow-inner flex-shrink-0">
+                    <img [src]="'http://http://16.176.174.48/:5000/' + p.image" (error)="onImageError($event)"
+                      class="w-full h-full object-cover">
                   </div>
                   <div class="flex flex-col">
-                    <span
-                      class="text-slate-900 dark:text-white font-bold group-hover:text-blue-600 transition-colors">{{
-                      p.name }}</span>
-                    <span class="text-[10px] text-slate-400 font-mono tracking-wider">SKU-{{
-                      p._id.slice(-6).toUpperCase() }}</span>
+                    <span class="text-slate-900 dark:text-white font-bold">{{ p.name }}</span>
+                    <span class="text-[10px] text-slate-400 font-mono tracking-wider uppercase">SKU-{{ p._id.slice(-6)
+                      }}</span>
                   </div>
                 </div>
               </td>
+
               <td class="px-6 py-5 border-y border-slate-100 dark:border-slate-800">
                 <div
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[11px] font-bold uppercase">
                   <ng-icon name="heroTag" size="12"></ng-icon>
-                  {{ p.category?.name || 'General' }}
+
+                  {{ p.category?.name || 'Uncategorized' }}
                 </div>
               </td>
+
               <td class="px-6 py-5 border-y border-slate-100 dark:border-slate-800">
                 <div class="flex flex-col gap-1.5 w-40">
                   <div class="flex justify-between items-end">
-                    <span class="text-[11px] font-black"
-                      [class]="p.stock <= 5 ? 'text-rose-500' : 'text-slate-600 dark:text-slate-300'">
+                    <span class="text-[11px] font-black" [class.text-rose-500]="p.stock <= 5">
                       {{ p.stock }} <span class="text-[9px] font-medium text-slate-400">AVAIL</span>
                     </span>
                     <span *ngIf="p.stock <= 5"
@@ -158,69 +167,34 @@
                   <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div class="h-full rounded-full transition-all duration-1000"
                       [ngClass]="p.stock <= 5 ? 'bg-rose-500' : 'bg-slate-900 dark:bg-blue-500'"
-                      [style.width.%]="p.stock > 100 ? 100 : p.stock"></div>
+                      [style.width.%]="p.stock > 100 ? 100 : (p.stock * 1)"></div>
                   </div>
                 </div>
               </td>
+
               <td class="px-6 py-5 border-y border-slate-100 dark:border-slate-800 text-base font-black tracking-tight">
                 ${{ p.price | number:'1.2-2' }}
               </td>
+
               <td
                 class="px-6 py-5 last:rounded-r-2xl border-y border-r border-slate-100 dark:border-slate-800 text-right">
                 <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                   <button
-                    class="w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-400 hover:text-blue-600 flex items-center justify-center">
+                    class="w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-400 hover:text-blue-600 flex items-center justify-center transition-colors">
                     <ng-icon name="heroPencilSquare" size="16"></ng-icon>
                   </button>
                   <button (click)="deleteProduct(p._id)"
-                    class="w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-400 hover:text-rose-600 flex items-center justify-center">
+                    class="w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors">
                     <ng-icon name="heroTrash" size="16"></ng-icon>
                   </button>
                 </div>
               </td>
             </tr>
 
-            <tr *ngIf="filteredProducts.length === 0">
+            <tr *ngIf="!isLoading && filteredProducts.length === 0">
               <td colspan="5" class="px-10 py-32 text-center">
-                <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
-                  <div class="relative mb-6">
-                    <div
-                      class="w-24 h-24 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700">
-                      <ng-icon name="heroArchiveBox" size="40" class="text-slate-300 dark:text-slate-600"></ng-icon>
-                    </div>
-                    <div
-                      class="absolute -top-2 -right-2 w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
-                      <span class="text-amber-600 text-lg font-bold">!</span>
-                    </div>
-                  </div>
-
-                  <h3 class="text-xl font-black text-slate-900 dark:text-white mb-2">Inventory is Empty</h3>
-
-                  <div
-                    class="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg mb-4">
-                    <ng-icon name="heroExclamationTriangle" size="18"></ng-icon>
-                    <span class="text-[10px] font-black uppercase tracking-widest">No matching records found</span>
-                  </div>
-
-                  <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed mb-8">
-                    It looks like you haven't added any products yet, or your current filters are too specific. Start by
-                    adding a new item to your ledger.
-                  </p>
-
-                  <div class="flex gap-3">
-                    <button (click)="searchTerm = ''; isBulkMode = false;"
-                      class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition">
-                      Clear Filters
-                    </button>
-                    <button (click)="openAddProductModal()"
-                      class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition active:scale-95">
-                      Add Product
-                    </button>
-                  </div>
-                </div>
               </td>
             </tr>
-
           </tbody>
         </table>
       </div>

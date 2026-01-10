@@ -75,17 +75,34 @@ exports.getProductStats = async (req, res) => {
                 _id: "$status", 
                 count: { $sum: 1 } 
             }}
+          ],
+          topPerformer: [
+            { $sort: { price: -1, stock: -1 } }, // Using price/stock as priority for now
+            { $limit: 1 },
+            { $project: { name: 1, _id: 0 } }
           ]
         }
       }
     ]);
 
+    const total = stats[0].totalStats[0]?.totalCount || 0;
+    const statusArray = stats[0].inventoryStatus;
+
+    // Helper to find specific status counts for the health bar
+    const getCount = (id) => statusArray.find(s => s._id === id)?.count || 0;
+
     res.json({
       success: true,
       stats: {
-        totalProducts: stats[0].totalStats[0]?.totalCount || 0,
+        totalProducts: total,
         totalValue: stats[0].totalStats[0]?.totalStockValue || 0,
-        statusBreakdown: stats[0].inventoryStatus,
+        bestSellerName: stats[0].topPerformer[0]?.name || 'N/A',
+        // Pre-calculating percentages for the Health Bar
+        health: {
+          optimal: total > 0 ? (getCount('In Stock') / total) * 100 : 0,
+          warning: total > 0 ? (getCount('Low Stock') / total) * 100 : 0,
+          critical: total > 0 ? (getCount('Out of Stock') / total) * 100 : 0
+        },
         timestamp: new Date()
       }
     });
@@ -93,7 +110,6 @@ exports.getProductStats = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
 // ================= GET ALL PRODUCTS =================
 exports.getProducts = async (req, res) => {
   try {
