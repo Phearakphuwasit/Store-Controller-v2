@@ -29,7 +29,7 @@ export class NotificationComponent implements OnInit {
   private eRef = inject(ElementRef);
   private cd = inject(ChangeDetectorRef);
 
-  private baseUrl = 'http://54.253.18.25:5000/api/auth';
+  private baseUrl = 'http://16.176.174.48:5000/api/auth';
   private token = localStorage.getItem('token');
 
   notifications: Notification[] = [];

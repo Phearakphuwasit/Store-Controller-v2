@@ -57,7 +57,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   searchTerm: string = '';
 
   private sub = new Subscription();
-  private baseUrl = 'http://54.253.18.25:5000';
+  private baseUrl = 'http://16.176.174.48:5000';
 
   ngOnInit(): void {
     this.fetchProfile(); // Fetch JWT-based profile

@@ -18,7 +18,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private alertService = inject(AlertService);
   private cd = inject(ChangeDetectorRef);
 
-  private baseUrl = 'http://54.253.18.25:5000';
+  private baseUrl = 'http://16.176.174.48:5000';
   private subscription = new Subscription();
 
   currentUser: any = null;
