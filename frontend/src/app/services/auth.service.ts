@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -44,6 +45,27 @@ export class AuthService {
   removeToken() {
     localStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem(this.tokenKey);
+  }
+  // -------------------- USAGE STATS --------------------
+  getUsageStats(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/api/user/usage-stats`);
+  }
+
+  // -------------------- SECURITY SETTINGS --------------------
+  getSecuritySettings(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/api/user/security-settings`);
+  }
+  // -------------------- LOGIN HISTORY --------------------
+  getLoginHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/api/user/login-sessions`);
+  }
+  // -------------------- TWO-FACTOR AUTH --------------------
+  toggleTwoFactor(enabled: boolean): Observable<any> {
+    return this.http.post(`${this.baseUrl}/api/user/2fa`, { enabled });
+  }
+  // -------------------- SESSIONS MANAGEMENT --------------------
+  revokeSession(sessionId: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/api/user/sessions/${sessionId}`);
   }
 
   // -------------------- AUTH API --------------------

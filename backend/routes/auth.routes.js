@@ -69,8 +69,6 @@ router.post(
 );
 
 // ==================== NOTIFICATIONS ====================
-
-// Mark ONE notification as read
 router.put(
   "/notifications/:id/read",
   authMiddleware,
@@ -101,7 +99,6 @@ router.put(
   }
 );
 
-// Mark ALL notifications as read
 router.put(
   "/notifications/read",
   authMiddleware,
@@ -135,7 +132,6 @@ router.put(
   }
 );
 
-// Optional controller-based route
 router.put(
   "/notifications/read-all",
   authMiddleware,
@@ -143,8 +139,6 @@ router.put(
 );
 
 // ==================== EXPORT / LOG ====================
-
-// Export log
 router.post(
   "/export-log",
   authMiddleware,

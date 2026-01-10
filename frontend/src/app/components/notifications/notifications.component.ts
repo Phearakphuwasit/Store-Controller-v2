@@ -4,17 +4,17 @@ import {
   HostListener,
   inject,
   ChangeDetectorRef,
-  OnInit
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { 
-  heroXMark, 
-  heroCheckCircle, 
-  heroExclamationTriangle, 
-  heroInformationCircle, 
-  heroXCircle 
+import {
+  heroXMark,
+  heroCheckCircle,
+  heroExclamationTriangle,
+  heroInformationCircle,
+  heroXCircle,
 } from '@ng-icons/heroicons/outline';
 
 interface Notification {
@@ -29,16 +29,18 @@ interface Notification {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule , NgIconComponent],
+  imports: [CommonModule, NgIconComponent],
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.css'],
-  viewProviders: [provideIcons({
-    heroXMark,
-    heroCheckCircle,
-    heroExclamationTriangle,
-    heroInformationCircle,
-    heroXCircle
-  })]
+  viewProviders: [
+    provideIcons({
+      heroXMark,
+      heroCheckCircle,
+      heroExclamationTriangle,
+      heroInformationCircle,
+      heroXCircle,
+    }),
+  ],
 })
 export class NotificationComponent implements OnInit {
   private http = inject(HttpClient);
@@ -61,8 +63,8 @@ export class NotificationComponent implements OnInit {
   private getHeaders() {
     return {
       headers: new HttpHeaders({
-        Authorization: `Bearer ${this.token}`
-      })
+        Authorization: `Bearer ${this.token}`,
+      }),
     };
   }
 
@@ -84,33 +86,26 @@ export class NotificationComponent implements OnInit {
   loadNotifications(): void {
     if (!this.token) return;
 
-    this.http
-      .get<any>(`${this.baseUrl}/profile`, this.getHeaders())
-      .subscribe(res => {
-        this.notifications = res.user.notifications || [];
-        this.unreadCount = this.notifications.filter(n => !n.isRead).length;
-        this.cd.markForCheck();
-      });
+    this.http.get<any>(`${this.baseUrl}/profile`, this.getHeaders()).subscribe((res) => {
+      this.notifications = res.user.notifications || [];
+      this.unreadCount = this.notifications.filter((n) => !n.isRead).length;
+      this.cd.markForCheck();
+    });
   }
 
-  // 🔥 CLICK ONE NOTIFICATION
   openNotification(n: Notification, event: MouseEvent): void {
     event.stopPropagation();
 
     this.selectedNotification = n;
     this.isDropdownOpen = false;
 
-    // Mark read locally (instant UI update)
     if (!n.isRead) {
       n.isRead = true;
       this.unreadCount--;
 
-      // Sync with backend
-      this.http.put(
-        `${this.baseUrl}/notifications/${n._id}/read`,
-        {},
-        this.getHeaders()
-      ).subscribe();
+      this.http
+        .put(`${this.baseUrl}/notifications/${n._id}/read`, {}, this.getHeaders())
+        .subscribe();
     }
 
     this.cd.markForCheck();
@@ -125,23 +120,23 @@ export class NotificationComponent implements OnInit {
   markAllAsRead(): void {
     if (!this.token || this.unreadCount === 0) return;
 
-    this.http.put(
-      `${this.baseUrl}/notifications/read`,
-      {},
-      this.getHeaders()
-    ).subscribe(() => {
-      this.notifications.forEach(n => (n.isRead = true));
+    this.http.put(`${this.baseUrl}/notifications/read`, {}, this.getHeaders()).subscribe(() => {
+      this.notifications.forEach((n) => (n.isRead = true));
       this.unreadCount = 0;
       this.cd.markForCheck();
     });
   }
 
   getIconName(type: string): string {
-  switch (type) {
-    case 'success': return 'heroCheckCircle';
-    case 'warning': return 'heroExclamationTriangle';
-    case 'error': return 'heroXCircle';
-    default: return 'heroInformationCircle';
+    switch (type) {
+      case 'success':
+        return 'heroCheckCircle';
+      case 'warning':
+        return 'heroExclamationTriangle';
+      case 'error':
+        return 'heroXCircle';
+      default:
+        return 'heroInformationCircle';
+    }
   }
-}
 }
