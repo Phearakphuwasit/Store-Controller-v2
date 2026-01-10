@@ -1,0 +1,886 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-3px);
+    }
+
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+    }
+
+    .progress-bar {
+        height: 6px;
+        border-radius: 3px;
+        overflow: hidden;
+        background-color: #e5e7eb;
+    }
+
+    .progress-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+
+    .map-container {
+        height: 300px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .delivery-route {
+        position: relative;
+        padding-left: 28px;
+    }
+
+    .delivery-route::before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: #d1d5db;
+    }
+
+    .route-stop {
+        position: relative;
+        margin-bottom: 24px;
+    }
+
+    .route-stop::before {
+        content: '';
+        position: absolute;
+        left: -28px;
+        top: 4px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px;
+    }
+
+    .route-stop.completed::before {
+        background-color: #10b981;
+        box-shadow: 0 0 0 2px #10b981;
+    }
+
+    .route-stop.active::before {
+        background-color: #3b82f6;
+        box-shadow: 0 0 0 2px #3b82f6;
+        animation: pulse 2s infinite;
+    }
+
+    .route-stop.pending::before {
+        background-color: #9ca3af;
+        box-shadow: 0 0 0 2px #9ca3af;
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .tab-active {
+        position: relative;
+    }
+
+    .tab-active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: #3b82f6;
+        border-radius: 3px 3px 0 0;
+    }
+</style>
+
+<body class="bg-gray-50 text-gray-800">
+    <div class="min-h-screen p-4 md:p-6 lg:p-8">
+        <!-- Header Section -->
+        <div class="mb-8 fade-in">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+                <div class="mb-6 lg:mb-0">
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Deliveries Tracking</h1>
+                    <p class="text-gray-500 mt-2">Monitor incoming and outgoing shipments in real-time</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <button
+                        class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-all shadow-sm">
+                        <i class="fas fa-print"></i>
+                        <span>Print Reports</span>
+                    </button>
+                    <button
+                        class="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                        <i class="fas fa-plus"></i>
+                        <span>Schedule Delivery</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Active Deliveries</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">18</p>
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-xl">
+                            <i class="fas fa-truck-moving text-blue-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-green-500 text-sm font-medium">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            <span>3 more than yesterday</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Incoming Today</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">7</p>
+                        </div>
+                        <div class="p-3 bg-green-50 rounded-xl">
+                            <i class="fas fa-box-open text-green-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-gray-500 text-sm">2 expected in next hour</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Outgoing Today</p>
+                            <p class="text-2xl font-bold text-amber-600 mt-1">11</p>
+                        </div>
+                        <div class="p-3 bg-amber-50 rounded-xl">
+                            <i class="fas fa-shipping-fast text-amber-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-gray-500 text-sm">5 already dispatched</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Delayed</p>
+                            <p class="text-2xl font-bold text-red-600 mt-1">3</p>
+                        </div>
+                        <div class="p-3 bg-red-50 rounded-xl">
+                            <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-gray-500 text-sm">Requires attention</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs and Filters -->
+        <div class="mb-8 fade-in">
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200 overflow-x-auto">
+                    <button class="px-5 py-3 font-medium text-gray-700 whitespace-nowrap tab-active">
+                        <i class="fas fa-inbox mr-2"></i>
+                        All Deliveries
+                    </button>
+                    <button class="px-5 py-3 font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                        <i class="fas fa-arrow-down mr-2"></i>
+                        Incoming
+                    </button>
+                    <button class="px-5 py-3 font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                        <i class="fas fa-arrow-up mr-2"></i>
+                        Outgoing
+                    </button>
+                    <button class="px-5 py-3 font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                        <i class="fas fa-clock mr-2"></i>
+                        Scheduled
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex-1 flex flex-wrap gap-3 justify-end">
+                    <select
+                        class="bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option>All Status</option>
+                        <option>In Transit</option>
+                        <option>Delivered</option>
+                        <option>Pending</option>
+                        <option>Delayed</option>
+                    </select>
+
+                    <select
+                        class="bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option>All Carriers</option>
+                        <option>UPS</option>
+                        <option>FedEx</option>
+                        <option>DHL</option>
+                        <option>USPS</option>
+                    </select>
+
+                    <button
+                        class="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-filter mr-2"></i>
+                        <span>More Filters</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Deliveries List -->
+            <div class="lg:col-span-2">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Deliveries</h2>
+
+                    <!-- Delivery Cards -->
+                    <div class="space-y-4">
+                        <!-- Delivery Card 1 -->
+                        <div class="bg-white rounded-2xl border border-gray-100 p-5 card-hover fade-in">
+                            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="font-bold text-gray-900 text-lg">Electronics Shipment #7892</h3>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="status-badge bg-blue-100 text-blue-800">In Transit</span>
+                                                <span class="text-xs text-gray-500">•</span>
+                                                <span class="text-sm text-gray-500">Tracking: UPS
+                                                    1Z999AA1234567890</span>
+                                            </div>
+                                        </div>
+                                        <button class="p-2 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Type</p>
+                                            <p class="font-medium text-gray-900">Incoming</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Carrier</p>
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-6 h-6 bg-blue-100 rounded-md flex items-center justify-center">
+                                                    <i class="fas fa-truck text-blue-600 text-xs"></i>
+                                                </div>
+                                                <span class="font-medium text-gray-900">UPS</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Estimated Arrival</p>
+                                            <p class="font-medium text-gray-900">Today, 3:00 PM</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Items</p>
+                                            <p class="font-medium text-gray-900">15 packages</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span class="text-gray-700">Route Progress</span>
+                                            <span class="font-medium text-blue-600">65%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill bg-blue-500" style="width: 65%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-map-marker-alt text-red-500"></i>
+                                                <span class="text-sm text-gray-700">Warehouse A</span>
+                                            </div>
+                                            <i class="fas fa-arrow-right text-gray-400"></i>
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-flag-checkered text-green-500"></i>
+                                                <span class="text-sm text-gray-700">Main Facility</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <button
+                                                class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors text-sm">
+                                                <i class="fas fa-map mr-1"></i>
+                                                Track
+                                            </button>
+                                            <button
+                                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                                                <i class="fas fa-info-circle mr-1"></i>
+                                                Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Card 2 -->
+                        <div class="bg-white rounded-2xl border border-gray-100 p-5 card-hover fade-in">
+                            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="font-bold text-gray-900 text-lg">Customer Order #4521</h3>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="status-badge bg-green-100 text-green-800">Delivered</span>
+                                                <span class="text-xs text-gray-500">•</span>
+                                                <span class="text-sm text-gray-500">Delivered 2 hours ago</span>
+                                            </div>
+                                        </div>
+                                        <button class="p-2 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Type</p>
+                                            <p class="font-medium text-gray-900">Outgoing</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Carrier</p>
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-6 h-6 bg-purple-100 rounded-md flex items-center justify-center">
+                                                    <i class="fas fa-shipping-fast text-purple-600 text-xs"></i>
+                                                </div>
+                                                <span class="font-medium text-gray-900">FedEx</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Delivered At</p>
+                                            <p class="font-medium text-gray-900">Today, 10:30 AM</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Recipient</p>
+                                            <p class="font-medium text-gray-900">John Smith</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span class="text-gray-700">Route Progress</span>
+                                            <span class="font-medium text-green-600">100%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill bg-green-500" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-map-marker-alt text-red-500"></i>
+                                                <span class="text-sm text-gray-700">Main Facility</span>
+                                            </div>
+                                            <i class="fas fa-arrow-right text-gray-400"></i>
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-home text-green-500"></i>
+                                                <span class="text-sm text-gray-700">Customer Address</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <button
+                                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                                                <i class="fas fa-receipt mr-1"></i>
+                                                View Proof
+                                            </button>
+                                            <button
+                                                class="px-4 py-2 bg-green-50 text-green-600 rounded-lg font-medium hover:bg-green-100 transition-colors text-sm">
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                                Confirm
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Card 3 -->
+                        <div class="bg-white rounded-2xl border border-gray-100 p-5 card-hover fade-in">
+                            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="font-bold text-gray-900 text-lg">Supplier Shipment #3367</h3>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="status-badge bg-red-100 text-red-800">Delayed</span>
+                                                <span class="text-xs text-gray-500">•</span>
+                                                <span class="text-sm text-gray-500">Weather delay - 1 day</span>
+                                            </div>
+                                        </div>
+                                        <button class="p-2 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Type</p>
+                                            <p class="font-medium text-gray-900">Incoming</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Carrier</p>
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-6 h-6 bg-yellow-100 rounded-md flex items-center justify-center">
+                                                    <i class="fas fa-truck text-yellow-600 text-xs"></i>
+                                                </div>
+                                                <span class="font-medium text-gray-900">DHL</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">New ETA</p>
+                                            <p class="font-medium text-gray-900">Tomorrow, 11:00 AM</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Items</p>
+                                            <p class="font-medium text-gray-900">8 packages</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span class="text-gray-700">Route Progress</span>
+                                            <span class="font-medium text-red-600">42%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill bg-red-500" style="width: 42%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-map-marker-alt text-red-500"></i>
+                                                <span class="text-sm text-gray-700">Supplier Warehouse</span>
+                                            </div>
+                                            <i class="fas fa-arrow-right text-gray-400"></i>
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-flag-checkered text-green-500"></i>
+                                                <span class="text-sm text-gray-700">Main Facility</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <button
+                                                class="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors text-sm">
+                                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                Report Issue
+                                            </button>
+                                            <button
+                                                class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors text-sm">
+                                                <i class="fas fa-phone-alt mr-1"></i>
+                                                Contact Carrier
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Card 4 -->
+                        <div class="bg-white rounded-2xl border border-gray-100 p-5 card-hover fade-in">
+                            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="font-bold text-gray-900 text-lg">Express Delivery #8892</h3>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="status-badge bg-amber-100 text-amber-800">Pending
+                                                    Pickup</span>
+                                                <span class="text-xs text-gray-500">•</span>
+                                                <span class="text-sm text-gray-500">Carrier arriving in 30 min</span>
+                                            </div>
+                                        </div>
+                                        <button class="p-2 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Type</p>
+                                            <p class="font-medium text-gray-900">Outgoing</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Carrier</p>
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center">
+                                                    <i class="fas fa-shipping-fast text-green-600 text-xs"></i>
+                                                </div>
+                                                <span class="font-medium text-gray-900">USPS</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Pickup Time</p>
+                                            <p class="font-medium text-gray-900">Today, 2:30 PM</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-1">Priority</p>
+                                            <p class="font-medium text-gray-900">Express</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span class="text-gray-700">Preparation</span>
+                                            <span class="font-medium text-amber-600">Ready for pickup</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill bg-amber-500" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-map-marker-alt text-red-500"></i>
+                                                <span class="text-sm text-gray-700">Packing Station 3</span>
+                                            </div>
+                                            <i class="fas fa-arrow-right text-gray-400"></i>
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-truck-loading text-amber-500"></i>
+                                                <span class="text-sm text-gray-700">Awaiting Carrier</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <button
+                                                class="px-4 py-2 bg-amber-50 text-amber-600 rounded-lg font-medium hover:bg-amber-100 transition-colors text-sm">
+                                                <i class="fas fa-box mr-1"></i>
+                                                Prepare Label
+                                            </button>
+                                            <button
+                                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                                                <i class="fas fa-qrcode mr-1"></i>
+                                                Scan Items
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-8">
+                <!-- Live Map -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-gray-900">Live Delivery Map</h3>
+                        <button class="text-blue-600 text-sm font-medium">
+                            <i class="fas fa-expand mr-1"></i>
+                            Full Screen
+                        </button>
+                    </div>
+
+                    <div class="map-container mb-4">
+                        <!-- Simplified map representation -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="relative w-full h-full">
+                                <!-- Route lines -->
+                                <div
+                                    class="absolute top-1/4 left-1/4 w-1/2 h-1/2 border-2 border-blue-300 border-dashed rounded-full">
+                                </div>
+
+                                <!-- Delivery points -->
+                                <div
+                                    class="absolute top-1/4 left-1/4 w-4 h-4 bg-blue-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-lg">
+                                    <div
+                                        class="absolute -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-xs font-medium bg-white px-2 py-1 rounded-md shadow-sm">
+                                        <i class="fas fa-truck mr-1 text-blue-500"></i>
+                                        Truck #12
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="absolute top-1/2 left-1/2 w-4 h-4 bg-green-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-lg">
+                                    <div
+                                        class="absolute -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-xs font-medium bg-white px-2 py-1 rounded-md shadow-sm">
+                                        <i class="fas fa-home mr-1 text-green-500"></i>
+                                        Delivery Point
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="absolute bottom-1/4 right-1/4 w-4 h-4 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-lg">
+                                    <div
+                                        class="absolute -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-xs font-medium bg-white px-2 py-1 rounded-md shadow-sm">
+                                        <i class="fas fa-warehouse mr-1 text-red-500"></i>
+                                        Warehouse
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                <span class="text-sm text-gray-700">Active Vehicles</span>
+                            </div>
+                            <span class="font-medium text-gray-900">8</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span class="text-sm text-gray-700">Deliveries Today</span>
+                            </div>
+                            <span class="font-medium text-gray-900">14</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-amber-500 rounded-full"></div>
+                                <span class="text-sm text-gray-700">Pending Pickups</span>
+                            </div>
+                            <span class="font-medium text-gray-900">5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Timeline -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-5">
+                    <h3 class="font-bold text-gray-900 mb-4">Delivery Timeline</h3>
+
+                    <div class="delivery-route">
+                        <div class="route-stop completed">
+                            <p class="font-medium text-gray-900 text-sm">Order Processed</p>
+                            <p class="text-xs text-gray-500">Today, 8:30 AM</p>
+                        </div>
+
+                        <div class="route-stop completed">
+                            <p class="font-medium text-gray-900 text-sm">Picked Up by Carrier</p>
+                            <p class="text-xs text-gray-500">Today, 10:15 AM</p>
+                        </div>
+
+                        <div class="route-stop active">
+                            <p class="font-medium text-gray-900 text-sm">In Transit</p>
+                            <p class="text-xs text-gray-500">Current Location</p>
+                            <p class="text-xs text-blue-600 mt-1">Approx. 45 min to destination</p>
+                        </div>
+
+                        <div class="route-stop pending">
+                            <p class="font-medium text-gray-900 text-sm">Out for Delivery</p>
+                            <p class="text-xs text-gray-500">Estimated: 2:00 PM</p>
+                        </div>
+
+                        <div class="route-stop pending">
+                            <p class="font-medium text-gray-900 text-sm">Delivered</p>
+                            <p class="text-xs text-gray-500">Estimated: 3:00 PM</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-100">
+                        <button
+                            class="w-full py-3 bg-gray-50 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-history mr-2"></i>
+                            View Full History
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-5">
+                    <h3 class="font-bold text-gray-900 mb-4">Quick Actions</h3>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button
+                            class="flex flex-col items-center justify-center p-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors">
+                            <i class="fas fa-barcode text-xl mb-2"></i>
+                            <span class="text-sm font-medium">Scan Package</span>
+                        </button>
+
+                        <button
+                            class="flex flex-col items-center justify-center p-4 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors">
+                            <i class="fas fa-print text-xl mb-2"></i>
+                            <span class="text-sm font-medium">Print Label</span>
+                        </button>
+
+                        <button
+                            class="flex flex-col items-center justify-center p-4 bg-purple-50 text-purple-600 rounded-xl hover:bg-purple-100 transition-colors">
+                            <i class="fas fa-phone text-xl mb-2"></i>
+                            <span class="text-sm font-medium">Contact Driver</span>
+                        </button>
+
+                        <button
+                            class="flex flex-col items-center justify-center p-4 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 transition-colors">
+                            <i class="fas fa-exclamation-triangle text-xl mb-2"></i>
+                            <span class="text-sm font-medium">Report Issue</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-gray-500 text-sm">
+                <span>Showing <span class="font-bold text-gray-900">4</span> of <span
+                        class="font-bold text-gray-900">18</span> active deliveries</span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-600 text-white font-medium">1</button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">2</button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">3</button>
+
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <button
+                class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                <i class="fas fa-redo mr-2"></i>
+                Refresh Data
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Simple interactivity for demonstration
+        document.addEventListener('DOMContentLoaded', function () {
+            // Tab switching functionality
+            const tabs = document.querySelectorAll('[class*="px-5 py-3 font-medium"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => {
+                        t.classList.remove('tab-active', 'text-gray-700');
+                        t.classList.add('text-gray-500');
+                    });
+
+                    // Add active class to clicked tab
+                    this.classList.add('tab-active', 'text-gray-700');
+                    this.classList.remove('text-gray-500');
+
+                    // In a real app, this would load different data based on the tab
+                    const tabText = this.textContent.trim();
+                    console.log(`Switched to tab: ${tabText}`);
+                });
+            });
+
+            // Delivery card interaction
+            const deliveryCards = document.querySelectorAll('.card-hover');
+            deliveryCards.forEach(card => {
+                card.addEventListener('click', function (e) {
+                    // Only trigger if the click wasn't on a button
+                    if (!e.target.closest('button')) {
+                        const deliveryTitle = this.querySelector('h3').textContent;
+                        console.log(`Viewing details for: ${deliveryTitle}`);
+                        // In a real app, this would open a modal or navigate to details page
+                    }
+                });
+            });
+
+            // Quick action buttons
+            const quickActions = document.querySelectorAll('[class*="flex flex-col items-center justify-center p-4"]');
+            quickActions.forEach(action => {
+                action.addEventListener('click', function () {
+                    const actionText = this.querySelector('span').textContent;
+                    alert(`Action: ${actionText}`);
+                });
+            });
+
+            // Schedule Delivery button
+            const scheduleBtn = document.querySelector('button:contains("Schedule Delivery")');
+            if (scheduleBtn) {
+                scheduleBtn.addEventListener('click', function () {
+                    alert('Opening delivery scheduling form...');
+                });
+            }
+
+            // Refresh data button
+            const refreshBtn = document.querySelector('button:contains("Refresh Data")');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function () {
+                    const btn = this;
+                    const originalText = btn.innerHTML;
+
+                    // Show loading state
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Refreshing...';
+                    btn.disabled = true;
+
+                    // Simulate API call
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        alert('Data refreshed successfully!');
+                    }, 1500);
+                });
+            }
+        });
+    </script>
