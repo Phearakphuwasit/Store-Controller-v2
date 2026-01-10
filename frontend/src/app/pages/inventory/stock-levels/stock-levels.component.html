@@ -4,7 +4,7 @@
     <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
       <div>
         <h1 class="text-3xl font-black text-slate-900 tracking-tight">Stock Intelligence</h1>
-        <p class="text-slate-500 font-medium mt-1">Real-time inventory health across <span class="text-indigo-600 font-bold">{{ products.length }}</span> active SKUs.</p>
+        <p class="text-slate-500 font-medium mt-1">Real-time inventory health across <span class="text-indigo-600 font-bold">{{ stats.totalProducts || products.length }}</span> active SKUs.</p>
       </div>
 
       <div class="flex items-center gap-3">
@@ -14,35 +14,34 @@
             <span class="w-2 h-2 bg-green-500 rounded-full animate-ping"></span> Syncing Live
           </span>
         </div>
-        <button class="bg-white border border-slate-200 p-3 rounded-2xl shadow-sm hover:bg-slate-50 transition-all">
-          <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <button (click)="loadProducts()" class="bg-white border border-slate-200 p-3 rounded-2xl shadow-sm hover:bg-slate-50 transition-all active:scale-95">
+          <ng-icon name="heroClock" class="w-5 h-5 text-slate-600"></ng-icon>
         </button>
       </div>
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
       
-      <div class="bg-white p-6 rounded-[2.5rem] border-2 border-red-50 shadow-sm relative overflow-hidden">
+      <div (click)="searchTerm = 'low stock'; applyFilter()" class="bg-white p-6 rounded-[2.5rem] border-2 border-red-50 shadow-sm relative overflow-hidden cursor-pointer hover:border-red-200 transition-all group">
         <div class="relative z-10">
           <p class="text-red-500 text-xs font-black uppercase tracking-widest mb-1">Critical Action</p>
-          <h3 class="text-4xl font-black text-slate-900">{{ stats.outOfStock + stats.lowStock }}</h3>
+          <h3 class="text-4xl font-black text-slate-900">{{ (stats.outOfStock || 0) + (stats.lowStock || 0) }}</h3>
           <p class="text-slate-500 text-sm font-medium mt-1">Items below safety threshold</p>
         </div>
-        <div class="absolute -right-4 -bottom-4 opacity-5 text-red-600">
-          <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 20 20"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        </div>
+        <ng-icon name="heroExclamationTriangle" size="120" class="absolute -right-4 -bottom-4 opacity-5 text-red-600 group-hover:scale-110 transition-transform"></ng-icon>
       </div>
 
       <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
         <p class="text-green-500 text-xs font-black uppercase tracking-widest mb-1">Optimized</p>
-        <h3 class="text-4xl font-black text-slate-900">{{ stats.totalProducts - (stats.outOfStock + stats.lowStock) }}</h3>
+        <h3 class="text-4xl font-black text-slate-900">{{ (stats.totalProducts || 0) - ((stats.outOfStock || 0) + (stats.lowStock || 0)) }}</h3>
         <p class="text-slate-500 text-sm font-medium mt-1">Items in healthy stock range</p>
       </div>
 
-      <div class="bg-indigo-600 p-6 rounded-[2.5rem] shadow-xl shadow-indigo-100 text-white">
-        <p class="text-indigo-200 text-xs font-black uppercase tracking-widest mb-1">Asset Turnover</p>
-        <h3 class="text-4xl font-black tracking-tighter">84.2%</h3>
-        <p class="text-indigo-100/80 text-sm font-medium mt-1">Stock utilization efficiency</p>
+      <div class="bg-indigo-600 p-6 rounded-[2.5rem] shadow-xl shadow-indigo-100 text-white relative overflow-hidden">
+        <p class="text-indigo-200 text-xs font-black uppercase tracking-widest mb-1">Inventory Valuation</p>
+        <h3 class="text-4xl font-black tracking-tighter">${{ stats.totalValue | number:'1.0-0' }}</h3>
+        <p class="text-indigo-100/80 text-sm font-medium mt-1">Total liquid asset value</p>
+        <ng-icon name="heroBanknotes" size="100" class="absolute -right-4 -bottom-4 opacity-10"></ng-icon>
       </div>
     </div>
 
@@ -59,9 +58,9 @@
         
         <div class="flex items-center gap-3">
           <div class="relative">
-             <input type="text" placeholder="Search SKU or Name..." [(ngModel)]="searchTerm"
+             <input type="text" placeholder="Search SKU or Name..." [(ngModel)]="searchTerm" (input)="applyFilter()"
               class="pl-10 pr-6 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none w-72 transition-all">
-             <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="3"/></svg>
+             <ng-icon name="heroMagnifyingGlass" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="18"></ng-icon>
           </div>
         </div>
       </div>
@@ -78,15 +77,18 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
-            <tr *ngFor="let p of products | filter:searchTerm" class="hover:bg-slate-50/80 transition-all group">
+            <tr *ngFor="let p of filteredProducts" class="hover:bg-slate-50/80 transition-all group">
               <td class="px-8 py-6">
                 <div class="flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-400 text-xs">
-                    {{ p.name.charAt(0) }}
+                  <div class="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center font-black text-slate-400">
+                    <img *ngIf="p.image" [src]="'http://16.176.174.48:5000/' + p.image" class="w-full h-full object-cover" (error)="p.image = ''">
+                    <span *ngIf="!p.image">{{ p.name.charAt(0) }}</span>
                   </div>
                   <div>
                     <span class="text-slate-900 font-bold block">{{ p.name }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold">CAT: {{ p.category }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                      {{ (p.category?.name || p.category) || 'Uncategorized' }}
+                    </span>
                   </div>
                 </div>
               </td>
@@ -99,7 +101,7 @@
               <td class="px-8 py-6">
                 <div class="w-full max-w-[140px]">
                   <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
-                    <div [style.width.%]="p.stock" 
+                    <div [style.width.%]="p.stock > 100 ? 100 : p.stock" 
                          class="h-full transition-all duration-1000"
                          [ngClass]="{
                             'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]': p.stock <= 5,
@@ -124,8 +126,8 @@
               </td>
 
               <td class="px-8 py-6 text-right">
-                <button class="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm">
-                  Order Units
+                <button (click)="openEditModal(p)" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm">
+                  Update Stock
                 </button>
               </td>
             </tr>

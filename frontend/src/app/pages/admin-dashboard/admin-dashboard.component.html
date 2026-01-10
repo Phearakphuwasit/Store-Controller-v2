@@ -357,10 +357,15 @@
     </section>
   </main>
 
-  <app-confirm-dialog *ngIf="showDeleteDialog" title="Purge Product"
-    message="You are about to permanently remove this item from the inventory. This action cannot be undone."
-    (confirmed)="confirmDeletion()" (cancelled)="showDeleteDialog = false">
-  </app-confirm-dialog>
+<app-confirm-dialog
+  *ngIf="showDeleteDialog"
+  title="Confirm Deletion"
+  message="Are you sure you want to remove this product? This action cannot be undone."
+  confirmText="Delete Product"
+  type="danger"
+  (confirmed)="confirmDeletion()"
+  (cancelled)="showDeleteDialog = false">
+</app-confirm-dialog>
 
   <app-add-product *ngIf="showAddProductModal" (productAdded)="onProductAdded($event)"
     (close)="closeAddProductModal()"></app-add-product>

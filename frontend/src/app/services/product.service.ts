@@ -110,12 +110,14 @@ export class ProductService {
   }
 
   // Delete a product
-deleteProduct(id: string): Observable<{ success: boolean }> {
-    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/${id}`, {
-      headers: this.getAuthHeaders(),
-    }).pipe(
-      tap(() => this.refreshProducts()) // Auto-refresh badges
-    );
+  deleteProduct(id: string): Observable<{ success: boolean }> {
+    return this.http
+      .delete<{ success: boolean }>(`${this.apiUrl}/${id}`, {
+        headers: this.getAuthHeaders(),
+      })
+      .pipe(
+        tap(() => this.refreshProducts()) // Auto-refresh badges
+      );
   }
 
   /* =======================

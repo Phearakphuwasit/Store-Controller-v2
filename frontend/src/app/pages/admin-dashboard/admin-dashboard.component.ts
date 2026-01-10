@@ -97,6 +97,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private cd = inject(ChangeDetectorRef);
   private alertService = inject(AlertService);
 
+  showDeleteConfirm = false;
+  productToDelete: Product | null = null;
   showDeleteDialog = false;
   productToDeleteId: string | null = null;
   categoryStats: any[] = [];
@@ -279,9 +281,25 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+  //=================== LOAD Products ===================//
+  loadProducts(): void {
+    // Re-fetch from server to ensure data integrity
+    this.productService.getProducts().subscribe({
+      next: (data) => {
+        this.products = data;
+        this.filteredProducts = data;
+        this.calculateStats();
+        this.cd.markForCheck();
+      },
+      error: (err) => {
+        this.alertService.show('Failed to sync with server', 'error');
+      },
+    });
+  }
   // --------------------------------------------- DASHBOARD DATA --------------------------------------------
   loadDashboardData(): void {
-    this.isLoading = true; // Set loading to true
+    this.isLoading = true;
     this.sub.add(
       forkJoin({
         products: this.productService.getProducts(),
@@ -291,7 +309,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.products = products;
           this.filteredProducts = [...products];
           this.stats = stats;
-          this.isLoading = false; // Set loading to false
+          this.isLoading = false;
           this.cd.markForCheck();
         },
         error: (err: HttpErrorResponse) => {
@@ -426,15 +444,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (!this.productToDeleteId) return;
 
     const id = this.productToDeleteId;
-    this.showDeleteDialog = false; // Close dialog immediately
+    this.showDeleteDialog = false;
 
     this.sub.add(
       this.productService.deleteProduct(id).subscribe({
         next: () => {
           this.alertService.show('Product removed from ledger', 'info');
+          // Optimized local update
           this.products = this.products.filter((p) => p._id !== id);
           this.filteredProducts = this.filteredProducts.filter((p) => p._id !== id);
-          this.calculateStats(); // Recalculate totals
+          this.calculateStats();
           this.productToDeleteId = null;
           this.cd.markForCheck();
         },
@@ -445,5 +464,19 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         },
       })
     );
+  }
+
+  confirmDelete(product: Product) {
+    this.productToDelete = product;
+    this.showDeleteConfirm = true;
+  }
+
+  handleDelete() {
+    if (this.productToDelete) {
+      this.productService.deleteProduct(this.productToDelete._id).subscribe(() => {
+        this.showDeleteConfirm = false;
+        this.loadProducts(); // Refresh list
+      });
+    }
   }
 }
