@@ -1,120 +1,916 @@
-<div class="min-h-screen bg-white dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100">
-  
-  <div class="border-b border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-md sticky top-0 z-30">
-    <div class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
-      <nav class="flex items-center gap-2 text-sm font-medium">
-        <span class="text-slate-400">Inventory</span>
-        <ng-icon name="heroChevronRight" size="12" class="text-slate-300"></ng-icon>
-        <span class="text-slate-900 dark:text-white">Categories</span>
-      </nav>
-      
-      <div class="flex items-center gap-4">
-        <button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">
-          <ng-icon name="heroBell" size="20"></ng-icon>
-        </button>
-        <div class="h-8 w-[1px] bg-slate-200 dark:border-slate-800"></div>
-        <button class="flex items-center gap-2 pl-2 group">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500"></div>
-          <ng-icon name="heroChevronDown" size="14" class="text-slate-400 group-hover:text-slate-600"></ng-icon>
-        </button>
-      </div>
-    </div>
-  </div>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+  }
 
-  <main class="max-w-[1400px] mx-auto px-6 py-8">
-    
-    <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-      <div>
-        <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">Product Categories</h1>
-        <p class="text-slate-500 dark:text-slate-400 mt-2 max-w-md">
-          Manage your inventory structure, tax rules, and display settings for your global catalog.
-        </p>
-      </div>
+  .card-hover {
+    transition: all 0.3s ease;
+  }
 
-      <div class="flex items-center gap-3">
-        <button class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-          Export CSV
-        </button>
-        <button class="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition shadow-sm flex items-center gap-2">
-          <ng-icon name="heroPlus" size="18"></ng-icon>
-          Create Category
-        </button>
-      </div>
-    </header>
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
 
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-      <div *ngFor="let stat of [{'label': 'Total', 'val': '12'}, {'label': 'Active', 'val': '10'}, {'label': 'Draft', 'val': '02'}]" 
-           class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{stat.label}}</p>
-        <p class="text-2xl font-semibold mt-1">{{stat.val}}</p>
-      </div>
-      
-      <div class="p-5 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
-        <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Unmapped SKUs</p>
-        <div class="flex items-center gap-2 mt-1">
-          <p class="text-2xl font-semibold text-amber-700 dark:text-amber-500">02</p>
-          <span class="text-[10px] bg-amber-200 dark:bg-amber-800/50 px-1.5 py-0.5 rounded font-bold text-amber-800 dark:text-amber-300">ACTION REQ.</span>
-        </div>
-      </div>
-    </section>
+  .category-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
 
-    <div class="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
-      <div class="relative w-full sm:w-96">
-        <ng-icon name="heroMagnifyingGlass" size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></ng-icon>
-        <input type="text" placeholder="Filter by name, SKU count, or status..." 
-               class="w-full pl-11 pr-4 py-2.5 bg-transparent border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition text-sm">
-      </div>
-      
-      <div class="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-lg">
-        <button class="p-2 rounded-md bg-white dark:bg-slate-800 shadow-sm text-blue-600">
-          <ng-icon name="heroSquares2x2" size="18"></ng-icon>
-        </button>
-        <button class="p-2 rounded-md text-slate-400 hover:text-slate-600">
-          <ng-icon name="heroListBullet" size="18"></ng-icon>
-        </button>
-      </div>
-    </div>
+  .progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background-color: #e5e7eb;
+  }
 
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      
-      <div *ngFor="let cat of categories" 
-           class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-blue-500/5">
-        
-        <div class="p-6">
-          <div class="flex justify-between items-start mb-6">
-            <div class="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-              <ng-icon [name]="cat.icon || 'heroTag'" size="24"></ng-icon>
-            </div>
-            
-            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
-                <ng-icon name="heroPencil" size="16"></ng-icon>
-              </button>
-              <button class="p-2 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition">
-                <ng-icon name="heroTrash" size="16"></ng-icon>
-              </button>
-            </div>
-          </div>
+  .progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+  }
 
-          <h3 class="font-bold text-lg leading-tight mb-2">{{cat.name}}</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-            {{cat.description || 'Provide a brief summary for this category group.'}}
-          </p>
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .tab-active {
+    position: relative;
+  }
+
+  .tab-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #3b82f6;
+    border-radius: 3px 3px 0 0;
+  }
+
+  .draggable-item {
+    cursor: grab;
+    transition: transform 0.2s;
+  }
+
+  .draggable-item:active {
+    cursor: grabbing;
+    transform: scale(1.02);
+  }
+
+  .category-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+</style>
+
+<body class="bg-gray-50 text-gray-800">
+  <div class="min-h-screen p-4 md:p-6 lg:p-8">
+    <!-- Header Section -->
+    <div class="mb-8 fade-in">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+        <div class="mb-6 lg:mb-0">
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Product Categories</h1>
+          <p class="text-gray-500 mt-2">Organize and manage your product catalog structure</p>
         </div>
 
-        <div class="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">Stock Units</span>
-            <span class="text-sm font-semibold">{{cat.productCount}} items</span>
-          </div>
-          
-          <button class="text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 group/btn">
-            Manage
-            <ng-icon name="heroArrowRight" size="14" class="group-hover/btn:translate-x-1 transition-transform"></ng-icon>
+        <div class="flex flex-wrap items-center gap-3">
+          <button
+            class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-all shadow-sm">
+            <i class="fas fa-download"></i>
+            <span>Export Categories</span>
+          </button>
+          <button
+            class="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+            <i class="fas fa-plus"></i>
+            <span>Add Category</span>
           </button>
         </div>
       </div>
 
-    </section>
-  </main>
-</div>
+      <!-- Stats Overview -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium">Total Categories</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1">24</p>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-xl">
+              <i class="fas fa-tags text-blue-500 text-xl"></i>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <p class="text-green-500 text-sm font-medium">
+              <i class="fas fa-arrow-up mr-1"></i>
+              <span>2 added this month</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium">Active Products</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1">1,248</p>
+            </div>
+            <div class="p-3 bg-green-50 rounded-xl">
+              <i class="fas fa-boxes text-green-500 text-xl"></i>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <p class="text-gray-500 text-sm">Across all categories</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium">Top Category</p>
+              <p class="text-lg font-bold text-gray-900 mt-1 truncate">Electronics</p>
+            </div>
+            <div class="p-3 bg-purple-50 rounded-xl">
+              <i class="fas fa-star text-purple-500 text-xl"></i>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <p class="text-gray-500 text-sm">312 products • $42K value</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium">Empty Categories</p>
+              <p class="text-2xl font-bold text-amber-600 mt-1">3</p>
+            </div>
+            <div class="p-3 bg-amber-50 rounded-xl">
+              <i class="fas fa-exclamation-triangle text-amber-500 text-xl"></i>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <p class="text-gray-500 text-sm">Needs attention</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Categories List -->
+      <div class="lg:col-span-2">
+        <!-- Tabs and Filters -->
+        <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6 fade-in">
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex border-b border-gray-200 overflow-x-auto">
+              <button class="px-5 py-3 font-medium text-gray-700 whitespace-nowrap tab-active">
+                <i class="fas fa-list mr-2"></i>
+                All Categories
+              </button>
+              <button class="px-5 py-3 font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                <i class="fas fa-layer-group mr-2"></i>
+                Hierarchy View
+              </button>
+              <button class="px-5 py-3 font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                <i class="fas fa-chart-pie mr-2"></i>
+                Analytics
+              </button>
+            </div>
+
+            <div class="flex-1 flex gap-3 justify-end">
+              <div class="relative flex-1 md:flex-none">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" placeholder="Search categories..."
+                  class="w-full md:w-64 pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+              </div>
+
+              <button
+                class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                <i class="fas fa-filter mr-2"></i>
+                <span>Filter</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories Grid -->
+        <div class="mb-8">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Category List</h2>
+            <div class="text-gray-500 text-sm">
+              <span class="font-medium">Drag to reorder</span>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Category Card 1 -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-5 card-hover draggable-item fade-in">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-4 flex-1">
+                  <div class="category-icon bg-blue-100 text-blue-600">
+                    <i class="fas fa-laptop"></i>
+                  </div>
+
+                  <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 class="font-bold text-gray-900 text-lg">Electronics</h3>
+                      <span class="category-badge bg-blue-100 text-blue-800">
+                        <i class="fas fa-boxes mr-1"></i>
+                        312 Products
+                      </span>
+                      <span class="category-badge bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    </div>
+
+                    <p class="text-gray-500 text-sm mb-4">Computers, smartphones, tablets, and related accessories</p>
+
+                    <div class="flex flex-wrap items-center gap-4 mb-4">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-dollar-sign text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Total Value: $42,850</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-cube text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Low Stock: 8 items</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-sitemap text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Subcategories: 6</span>
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-700">Inventory Health</span>
+                        <span class="font-medium text-green-600">85% Optimal</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill bg-green-500" style="width: 85%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-col items-end gap-2 ml-4">
+                  <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-ellipsis-h"></i>
+                  </button>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500 mb-1">Last Updated</p>
+                    <p class="text-sm font-medium text-gray-900">2 days ago</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-3 mt-5 pt-5 border-t border-gray-100">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-gray-500">Subcategories:</span>
+                  <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Laptops</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Smartphones</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Tablets</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Accessories</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Components</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                    <i class="fas fa-edit mr-1"></i>
+                    Edit
+                  </button>
+                  <button
+                    class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors text-sm">
+                    <i class="fas fa-eye mr-1"></i>
+                    View Products
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category Card 2 -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-5 card-hover draggable-item fade-in">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-4 flex-1">
+                  <div class="category-icon bg-green-100 text-green-600">
+                    <i class="fas fa-tshirt"></i>
+                  </div>
+
+                  <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 class="font-bold text-gray-900 text-lg">Fashion & Apparel</h3>
+                      <span class="category-badge bg-blue-100 text-blue-800">
+                        <i class="fas fa-boxes mr-1"></i>
+                        198 Products
+                      </span>
+                      <span class="category-badge bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    </div>
+
+                    <p class="text-gray-500 text-sm mb-4">Clothing, shoes, accessories, and fashion items</p>
+
+                    <div class="flex flex-wrap items-center gap-4 mb-4">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-dollar-sign text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Total Value: $28,420</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-cube text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Low Stock: 12 items</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-sitemap text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Subcategories: 5</span>
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-700">Inventory Health</span>
+                        <span class="font-medium text-amber-600">65% Moderate</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill bg-amber-500" style="width: 65%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-col items-end gap-2 ml-4">
+                  <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-ellipsis-h"></i>
+                  </button>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500 mb-1">Last Updated</p>
+                    <p class="text-sm font-medium text-gray-900">1 week ago</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-3 mt-5 pt-5 border-t border-gray-100">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-gray-500">Subcategories:</span>
+                  <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Men's Wear</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Women's Wear</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Footwear</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Accessories</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                    <i class="fas fa-edit mr-1"></i>
+                    Edit
+                  </button>
+                  <button
+                    class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors text-sm">
+                    <i class="fas fa-eye mr-1"></i>
+                    View Products
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category Card 3 -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-5 card-hover draggable-item fade-in">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-4 flex-1">
+                  <div class="category-icon bg-purple-100 text-purple-600">
+                    <i class="fas fa-home"></i>
+                  </div>
+
+                  <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 class="font-bold text-gray-900 text-lg">Home & Kitchen</h3>
+                      <span class="category-badge bg-blue-100 text-blue-800">
+                        <i class="fas fa-boxes mr-1"></i>
+                        156 Products
+                      </span>
+                      <span class="category-badge bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    </div>
+
+                    <p class="text-gray-500 text-sm mb-4">Furniture, appliances, decor, and kitchen supplies</p>
+
+                    <div class="flex flex-wrap items-center gap-4 mb-4">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-dollar-sign text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Total Value: $35,760</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-cube text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Low Stock: 5 items</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-sitemap text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Subcategories: 4</span>
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-700">Inventory Health</span>
+                        <span class="font-medium text-green-600">92% Optimal</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill bg-green-500" style="width: 92%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-col items-end gap-2 ml-4">
+                  <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-ellipsis-h"></i>
+                  </button>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500 mb-1">Last Updated</p>
+                    <p class="text-sm font-medium text-gray-900">3 days ago</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-3 mt-5 pt-5 border-t border-gray-100">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-gray-500">Subcategories:</span>
+                  <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Furniture</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Kitchenware</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Decor</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">Appliances</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                    <i class="fas fa-edit mr-1"></i>
+                    Edit
+                  </button>
+                  <button
+                    class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors text-sm">
+                    <i class="fas fa-eye mr-1"></i>
+                    View Products
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category Card 4 (Empty Category) -->
+            <div
+              class="bg-white rounded-2xl border border-gray-100 p-5 card-hover draggable-item fade-in border-l-4 border-l-amber-500">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-4 flex-1">
+                  <div class="category-icon bg-gray-100 text-gray-400">
+                    <i class="fas fa-question"></i>
+                  </div>
+
+                  <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 class="font-bold text-gray-900 text-lg">Seasonal Items</h3>
+                      <span class="category-badge bg-gray-100 text-gray-800">
+                        <i class="fas fa-boxes mr-1"></i>
+                        0 Products
+                      </span>
+                      <span class="category-badge bg-amber-100 text-amber-800">
+                        Empty
+                      </span>
+                    </div>
+
+                    <p class="text-gray-500 text-sm mb-4">Holiday and seasonal products (currently out of season)</p>
+
+                    <div class="flex flex-wrap items-center gap-4 mb-4">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-dollar-sign text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Total Value: $0</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-cube text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Low Stock: 0 items</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-sitemap text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-900">Subcategories: 0</span>
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-700">Inventory Health</span>
+                        <span class="font-medium text-red-600">0% Empty</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill bg-red-500" style="width: 0%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-col items-end gap-2 ml-4">
+                  <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-ellipsis-h"></i>
+                  </button>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500 mb-1">Created</p>
+                    <p class="text-sm font-medium text-gray-900">1 month ago</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-3 mt-5 pt-5 border-t border-gray-100">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-amber-600">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    This category has no products
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm">
+                    <i class="fas fa-trash mr-1"></i>
+                    Delete
+                  </button>
+                  <button
+                    class="px-4 py-2 bg-amber-50 text-amber-600 rounded-lg font-medium hover:bg-amber-100 transition-colors text-sm">
+                    <i class="fas fa-plus mr-1"></i>
+                    Add Products
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state (hidden by default) -->
+        <div class="hidden bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-tags text-4xl text-blue-500"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">No categories found</h3>
+          <p class="text-gray-500 mb-6 max-w-md mx-auto">Create your first category to start organizing products.</p>
+          <button class="px-5 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors">
+            <i class="fas fa-plus mr-2"></i>
+            Create First Category
+          </button>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-8">
+        <!-- Category Hierarchy -->
+        <div class="bg-white rounded-2xl border border-gray-100 p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-900">Category Hierarchy</h3>
+            <button class="text-blue-600 text-sm font-medium">
+              <i class="fas fa-expand mr-1"></i>
+              Full View
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-laptop text-blue-600"></i>
+                </div>
+                <span class="font-medium text-gray-900">Electronics</span>
+              </div>
+              <span class="text-xs font-medium bg-white px-2 py-1 rounded-md">312</span>
+            </div>
+
+            <div class="ml-6 space-y-2">
+              <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                  <span class="text-sm text-gray-700">Laptops</span>
+                </div>
+                <span class="text-xs text-gray-500">78</span>
+              </div>
+              <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                  <span class="text-sm text-gray-700">Smartphones</span>
+                </div>
+                <span class="text-xs text-gray-500">124</span>
+              </div>
+              <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                  <span class="text-sm text-gray-700">Tablets</span>
+                </div>
+                <span class="text-xs text-gray-500">56</span>
+              </div>
+              <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                  <span class="text-sm text-gray-700">Accessories</span>
+                </div>
+                <span class="text-xs text-gray-500">34</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-tshirt text-green-600"></i>
+                </div>
+                <span class="font-medium text-gray-900">Fashion & Apparel</span>
+              </div>
+              <span class="text-xs font-medium bg-white px-2 py-1 rounded-md">198</span>
+            </div>
+
+            <div class="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-home text-purple-600"></i>
+                </div>
+                <span class="font-medium text-gray-900">Home & Kitchen</span>
+              </div>
+              <span class="text-xs font-medium bg-white px-2 py-1 rounded-md">156</span>
+            </div>
+
+            <div class="flex items-center justify-between p-3 bg-amber-50 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-book text-amber-600"></i>
+                </div>
+                <span class="font-medium text-gray-900">Books & Media</span>
+              </div>
+              <span class="text-xs font-medium bg-white px-2 py-1 rounded-md">89</span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100">
+            <button
+              class="w-full py-2.5 bg-gray-50 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-colors">
+              <i class="fas fa-plus mr-2"></i>
+              Add Subcategory
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="bg-white rounded-2xl border border-gray-100 p-5">
+          <h3 class="font-bold text-gray-900 mb-4">Category Performance</h3>
+
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-700">Electronics</span>
+                <span class="font-medium text-gray-900">42% of revenue</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill bg-blue-500" style="width: 42%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-700">Fashion & Apparel</span>
+                <span class="font-medium text-gray-900">28% of revenue</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill bg-green-500" style="width: 28%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-700">Home & Kitchen</span>
+                <span class="font-medium text-gray-900">18% of revenue</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill bg-purple-500" style="width: 18%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-700">Others</span>
+                <span class="font-medium text-gray-900">12% of revenue</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill bg-gray-400" style="width: 12%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Total Monthly Revenue</p>
+                <p class="text-xl font-bold text-gray-900">$124,850</p>
+              </div>
+              <div class="text-green-500">
+                <i class="fas fa-arrow-up mr-1"></i>
+                <span class="font-medium">12.5%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-2xl border border-gray-100 p-5">
+          <h3 class="font-bold text-gray-900 mb-4">Category Management</h3>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              class="flex flex-col items-center justify-center p-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors">
+              <i class="fas fa-random text-xl mb-2"></i>
+              <span class="text-sm font-medium">Reorder</span>
+            </button>
+
+            <button
+              class="flex flex-col items-center justify-center p-4 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors">
+              <i class="fas fa-copy text-xl mb-2"></i>
+              <span class="text-sm font-medium">Duplicate</span>
+            </button>
+
+            <button
+              class="flex flex-col items-center justify-center p-4 bg-purple-50 text-purple-600 rounded-xl hover:bg-purple-100 transition-colors">
+              <i class="fas fa-merge text-xl mb-2"></i>
+              <span class="text-sm font-medium">Merge</span>
+            </button>
+
+            <button
+              class="flex flex-col items-center justify-center p-4 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors">
+              <i class="fas fa-trash-alt text-xl mb-2"></i>
+              <span class="text-sm font-medium">Bulk Delete</span>
+            </button>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-100">
+            <div class="text-sm text-gray-500">
+              <p class="mb-2"><i class="fas fa-info-circle mr-2 text-blue-500"></i>Drag categories to reorder display
+                sequence</p>
+              <p><i class="fas fa-exclamation-triangle mr-2 text-amber-500"></i>Empty categories marked for review</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="text-gray-500 text-sm">
+        <span>Showing <span class="font-bold text-gray-900">4</span> of <span class="font-bold text-gray-900">24</span>
+          categories</span>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-600 text-white font-medium">1</button>
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">2</button>
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">3</button>
+
+        <span class="text-gray-400">...</span>
+
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="text-sm text-gray-500">
+        <span><span class="font-bold text-gray-900">3</span> empty categories need attention</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple interactivity for demonstration
+    document.addEventListener('DOMContentLoaded', function () {
+      // Tab switching functionality
+      const tabs = document.querySelectorAll('[class*="px-5 py-3 font-medium"]');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+          // Remove active class from all tabs
+          tabs.forEach(t => {
+            t.classList.remove('tab-active', 'text-gray-700');
+            t.classList.add('text-gray-500');
+          });
+
+          // Add active class to clicked tab
+          this.classList.add('tab-active', 'text-gray-700');
+          this.classList.remove('text-gray-500');
+
+          // In a real app, this would load different data based on the tab
+          const tabText = this.textContent.trim();
+          console.log(`Switched to tab: ${tabText}`);
+        });
+      });
+
+      // Category card interaction
+      const categoryCards = document.querySelectorAll('.card-hover');
+      categoryCards.forEach(card => {
+        card.addEventListener('click', function (e) {
+          // Only trigger if the click wasn't on a button
+          if (!e.target.closest('button') && !e.target.closest('a')) {
+            const categoryName = this.querySelector('h3').textContent;
+            alert(`Viewing details for category: ${categoryName}`);
+            // In a real app, this would open a modal or navigate to details page
+          }
+        });
+      });
+
+      // Quick action buttons
+      const quickActions = document.querySelectorAll('[class*="flex flex-col items-center justify-center p-4"]');
+      quickActions.forEach(action => {
+        action.addEventListener('click', function () {
+          const actionText = this.querySelector('span').textContent;
+          alert(`Category Management Action: ${actionText}`);
+        });
+      });
+
+      // Add Category button
+      const addCategoryBtn = document.querySelector('button:contains("Add Category")');
+      if (addCategoryBtn) {
+        addCategoryBtn.addEventListener('click', function () {
+          alert('Opening category creation form...');
+        });
+      }
+
+      // Edit category buttons
+      const editButtons = document.querySelectorAll('button:contains("Edit")');
+      editButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const categoryCard = this.closest('.card-hover');
+          const categoryName = categoryCard.querySelector('h3').textContent;
+          alert(`Editing category: ${categoryName}`);
+        });
+      });
+
+      // View Products buttons
+      const viewProductButtons = document.querySelectorAll('button:contains("View Products")');
+      viewProductButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const categoryCard = this.closest('.card-hover');
+          const categoryName = categoryCard.querySelector('h3').textContent;
+          alert(`Navigating to products in category: ${categoryName}`);
+        });
+      });
+
+      // Add drag and drop simulation for reordering
+      const draggableItems = document.querySelectorAll('.draggable-item');
+      draggableItems.forEach(item => {
+        item.addEventListener('dragstart', function (e) {
+          this.style.opacity = '0.5';
+        });
+
+        item.addEventListener('dragend', function (e) {
+          this.style.opacity = '1';
+          alert('Category order updated!');
+        });
+      });
+
+      // Hierarchy view items click
+      const hierarchyItems = document.querySelectorAll('.bg-blue-50, .bg-green-50, .bg-purple-50, .bg-amber-50');
+      hierarchyItems.forEach(item => {
+        item.addEventListener('click', function () {
+          const categoryName = this.querySelector('.font-medium').textContent;
+          console.log(`Selected category from hierarchy: ${categoryName}`);
+        });
+      });
+    });
+  </script>
