@@ -19,14 +19,14 @@ ENV NODE_OPTIONS=--max_old_space_size=512
 RUN npm run build --configuration production
 
 
-# ---------- Stage 2: Serve with Nginx ----------
+# ---------- Stage: Serve pre-built Angular ----------
 FROM nginx:alpine
 
 # Remove default Nginx static files
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy built Angular files
-COPY --from=build /app/dist/store_controller /usr/share/nginx/html
+# Copy pre-built Angular browser folder
+COPY dist/store_controller/browser /usr/share/nginx/html
 
 # Copy custom Nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
