@@ -19,6 +19,9 @@ import { ExportButtonComponent } from '../../components/export-button/export-but
 import { AlertService } from '../../services/alert.service';
 import { AuthService } from '../../services/auth.service';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
+
+// IMPORT ALL NECESSARY ICONS HERE
 import {
   heroMagnifyingGlass,
   heroAdjustmentsHorizontal,
@@ -34,6 +37,14 @@ import {
   heroClock,
   heroExclamationTriangle,
   heroArchiveBox,
+  heroCpuChip,
+  heroCheckBadge,
+  heroPresentationChartLine,
+  heroChartPie,
+  heroBanknotes,
+  heroFire,
+  heroShieldCheck,
+  heroUserCircle,
 } from '@ng-icons/heroicons/outline';
 
 @Component({
@@ -46,6 +57,7 @@ import {
     NotificationComponent,
     ExportButtonComponent,
     NgIconComponent,
+    ConfirmDialogComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,6 +77,15 @@ import {
       heroClock,
       heroExclamationTriangle,
       heroArchiveBox,
+      // PROVIDE THE NEW ICONS HERE
+      heroCpuChip,
+      heroCheckBadge,
+      heroPresentationChartLine,
+      heroChartPie,
+      heroBanknotes,
+      heroFire,
+      heroShieldCheck,
+      heroUserCircle,
     }),
   ],
 })
@@ -75,6 +96,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private locationService = inject(LocationService);
   private cd = inject(ChangeDetectorRef);
   private alertService = inject(AlertService);
+
+  showDeleteDialog = false;
+  productToDeleteId: string | null = null;
+  categoryStats: any[] = [];
+  activeFilterLabel: string = '';
 
   today: Date = new Date();
   username: string = '';
@@ -210,49 +236,49 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.stats.totalValue = this.products.reduce((acc, p) => acc + p.price * p.stock, 0);
   }
   // --------------------------------------------- loadInventory --------------------------------------------
-loadInventory() {
-  this.isLoading = true;
-  this.cd.markForCheck();
+  loadInventory() {
+    this.isLoading = true;
+    this.cd.markForCheck();
 
-  const startTime = Date.now();
+    const startTime = Date.now();
 
-  this.productService.getProducts().subscribe({
-    next: (data: Product[]) => {
-      // Create a valid fallback that satisfies the Category interface
-      const unknownCategory: Category = {
-        _id: '0',
-        name: 'Uncategorized',
-        slug: 'uncategorized'
-      };
+    this.productService.getProducts().subscribe({
+      next: (data: Product[]) => {
+        // Create a valid fallback that satisfies the Category interface
+        const unknownCategory: Category = {
+          _id: '0',
+          name: 'Uncategorized',
+          slug: 'uncategorized',
+        };
 
-      const normalizedData: Product[] = data.map(p => ({
-        ...p,
-        // If category is null/undefined, use our valid unknownCategory object
-        category: p.category ? p.category : unknownCategory,
-        stock: p.stock ?? 0,
-        price: p.price ?? 0
-      }));
+        const normalizedData: Product[] = data.map((p) => ({
+          ...p,
+          // If category is null/undefined, use our valid unknownCategory object
+          category: p.category ? p.category : unknownCategory,
+          stock: p.stock ?? 0,
+          price: p.price ?? 0,
+        }));
 
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, 500 - elapsed);
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 500 - elapsed);
 
-      setTimeout(() => {
-        this.products = normalizedData;
-        this.filteredProducts = [...normalizedData];
-        this.calculateStats();
-        
+        setTimeout(() => {
+          this.products = normalizedData;
+          this.filteredProducts = [...normalizedData];
+          this.calculateStats();
+
+          this.isLoading = false;
+          this.cd.markForCheck();
+        }, remaining);
+      },
+      error: (err) => {
         this.isLoading = false;
+        console.error('Fetch failed', err);
+        this.alertService.show('System sync failed.', 'error');
         this.cd.markForCheck();
-      }, remaining);
-    },
-    error: (err) => {
-      this.isLoading = false;
-      console.error('Fetch failed', err);
-      this.alertService.show('System sync failed.', 'error');
-      this.cd.markForCheck();
-    },
-  });
-}
+      },
+    });
+  }
   // --------------------------------------------- DASHBOARD DATA --------------------------------------------
   loadDashboardData(): void {
     this.isLoading = true; // Set loading to true
@@ -294,43 +320,80 @@ loadInventory() {
   // ------------------------------------------------- FILTER ------------------------------------------
   applyFilter(): void {
     const search = this.searchTerm.toLowerCase().trim();
-
-    this.filteredProducts = !search
-      ? [...this.products]
-      : this.products.filter((p) => {
-          // Cleanly extract category name regardless of structure
-          const catName = (typeof p.category === 'object' ? p.category?.name : p.category) ?? '';
-
-          return (
-            p.name?.toLowerCase().includes(search) ||
-            catName.toLowerCase().includes(search) ||
-            p._id?.toLowerCase().includes(search) // Allow searching by ID/SKU
-          );
-        });
+    this.activeFilterLabel = '';
+    if (search === 'low stock') {
+      this.activeFilterLabel = 'Showing: Critical Stock Only';
+      this.filteredProducts = this.products.filter((p) => p.stock <= 5);
+    } else if (!search) {
+      this.filteredProducts = [...this.products];
+    } else {
+      this.filteredProducts = this.products.filter((p) => {
+        const catName = (typeof p.category === 'object' ? p.category?.name : p.category) ?? '';
+        return (
+          p.name?.toLowerCase().includes(search) ||
+          catName.toLowerCase().includes(search) ||
+          p._id?.toLowerCase().includes(search)
+        );
+      });
+    }
 
     this.cd.markForCheck();
   }
+
+  // Helper to clear filters easily
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.applyFilter();
+  }
   // --------------------------------------------- DELETE PRODUCT -------------------------------------
   deleteProduct(id: string): void {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-
-    this.sub.add(
-      this.productService.deleteProduct(id).subscribe({
-        next: () => {
-          this.alertService.show('Product removed successfully', 'info');
-          this.products = this.products.filter((p) => p._id !== id);
-          this.filteredProducts = this.filteredProducts.filter((p) => p._id !== id);
-          this.stats.totalProducts--;
-          this.cd.markForCheck();
-        },
-        error: (err: HttpErrorResponse) => {
-          console.error('Delete product error:', err);
-          this.alertService.show(err.error?.message || 'Failed to delete product', 'error');
-        },
-      })
-    );
+    this.productToDeleteId = id;
+    this.showDeleteDialog = true;
+    this.cd.markForCheck();
   }
 
+  // Bulk Selection logic
+  selectedIds = new Set<string>();
+
+  toggleSelection(id: string) {
+    this.selectedIds.has(id) ? this.selectedIds.delete(id) : this.selectedIds.add(id);
+  }
+
+  toggleAll(event: any) {
+    if (event.target.checked) {
+      this.filteredProducts.forEach((p) => this.selectedIds.add(p._id));
+    } else {
+      this.selectedIds.clear();
+    }
+  }
+
+  isSelected(id: string) {
+    return this.selectedIds.has(id);
+  }
+
+  // Helper to get only low stock items for the new alert table
+  getLowStockItems() {
+    return this.products.filter((p) => p.stock <= 5).slice(0, 5);
+  }
+
+  // Logic to calculate Category Distribution
+  getCategoryStats() {
+    const statsMap = new Map();
+    this.products.forEach((p) => {
+      const catName = p.category?.name || 'General';
+      const currentValue = statsMap.get(catName) || 0;
+      statsMap.set(catName, currentValue + p.price * p.stock);
+    });
+
+    const totalValue = this.stats.totalValue || 1;
+    return Array.from(statsMap.entries())
+      .map(([name, value]) => ({
+        name,
+        value,
+        percentage: (value / totalValue) * 100,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }
   // --------------------------------------------- ADD PRODUCT --------------------------------------------
   onProductAdded(newProduct: Product): void {
     this.alertService.show('Entry Initialized', 'success');
@@ -357,5 +420,30 @@ loadInventory() {
     event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
       this.username
     )}&background=6366f1&color=fff`;
+  }
+
+  confirmDeletion(): void {
+    if (!this.productToDeleteId) return;
+
+    const id = this.productToDeleteId;
+    this.showDeleteDialog = false; // Close dialog immediately
+
+    this.sub.add(
+      this.productService.deleteProduct(id).subscribe({
+        next: () => {
+          this.alertService.show('Product removed from ledger', 'info');
+          this.products = this.products.filter((p) => p._id !== id);
+          this.filteredProducts = this.filteredProducts.filter((p) => p._id !== id);
+          this.calculateStats(); // Recalculate totals
+          this.productToDeleteId = null;
+          this.cd.markForCheck();
+        },
+        error: (err) => {
+          this.alertService.show(err.error?.message || 'Delete failed', 'error');
+          this.productToDeleteId = null;
+          this.cd.markForCheck();
+        },
+      })
+    );
   }
 }

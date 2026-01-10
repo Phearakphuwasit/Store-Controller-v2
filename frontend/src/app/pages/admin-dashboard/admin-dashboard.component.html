@@ -20,7 +20,7 @@
     <div class="flex items-center gap-3">
       <app-notifications class="hidden md:block"></app-notifications>
       <button (click)="openAddProductModal()"
-        class="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-slate-200 dark:shadow-none hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
+        class="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
         <ng-icon name="heroPlus" stroke-width="3"></ng-icon>
         <span class="hidden sm:inline">Add Product</span>
       </button>
@@ -28,62 +28,135 @@
   </div>
 
   <main class="max-w-[1600px] mx-auto px-6 py-10">
-    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
+
       <div
-        class="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden group">
-        <div class="relative z-10">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="p-2 bg-white/20 rounded-lg backdrop-blur-md">
-              <ng-icon name="heroTrophy" size="18"></ng-icon>
+        class="lg:col-span-5 bg-slate-900 dark:bg-indigo-950 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden group border border-white/5">
+        <div class="relative z-10 flex flex-col h-full justify-between">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span
+                  class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">Core Engine Active</p>
+              </div>
+              <h3 class="text-3xl font-black tracking-tighter">Inventory Ledger</h3>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-widest opacity-80">Best Seller</span>
+            <div class="text-right">
+              <p class="text-3xl font-mono font-bold text-white">{{ stats.totalProducts }}</p>
+              <p class="text-[9px] font-bold uppercase opacity-50 tracking-widest text-indigo-200 text-nowrap">Managed
+                SKUs</p>
+            </div>
           </div>
-          <h3 class="text-xl font-bold truncate">{{ stats.bestSellerName }}</h3>
-          <p class="text-sm opacity-70 mt-1">High demand item</p>
+
+          <div class="flex items-end gap-1.5 h-20 mt-8 mb-4">
+            <div *ngFor="let p of products.slice(0, 15)"
+              class="flex-1 bg-indigo-500/30 rounded-full transition-all duration-700 group-hover:bg-indigo-400 group-hover:shadow-[0_0_10px_rgba(129,140,248,0.5)]"
+              [style.height.%]="p.stock > 100 ? 100 : p.stock" [title]="p.name + ': ' + p.stock">
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center pt-6 border-t border-white/10">
+            <div class="flex items-center gap-3">
+              <div class="flex -space-x-2">
+                <div
+                  class="w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-bold">
+                  A</div>
+                <div
+                  class="w-8 h-8 rounded-full border-2 border-slate-900 bg-indigo-600 flex items-center justify-center text-[10px] font-bold shadow-lg">
+                  <ng-icon name="heroCheckBadge" size="14"></ng-icon>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-tight">Verified Session</span>
+            </div>
+            <button
+              class="group/btn relative text-[10px] font-black uppercase tracking-widest px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl transition-all active:scale-95">
+              <span class="flex items-center gap-2">
+                <ng-icon name="heroShieldCheck" size="14" class="text-indigo-300"></ng-icon>
+                System Audit
+              </span>
+            </button>
+          </div>
         </div>
-        <ng-icon name="heroSparkles" size="80"
-          class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform"></ng-icon>
+        <ng-icon name="heroCpuChip" size="160"
+          class="absolute -right-10 -bottom-10 opacity-[0.05] rotate-12 group-hover:rotate-0 transition-transform duration-1000"></ng-icon>
+      </div>
+
+      <div class="lg:col-span-3 flex flex-col gap-6">
+        <div (click)="searchTerm = 'low stock'; applyFilter()"
+          class="flex-1 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-7 cursor-pointer hover:shadow-2xl hover:shadow-rose-500/10 hover:border-rose-500 transition-all group relative overflow-hidden">
+          <div class="relative z-10">
+            <div class="flex justify-between items-center mb-4">
+              <div
+                class="p-3 bg-rose-50 dark:bg-rose-900/30 rounded-2xl text-rose-600 group-hover:scale-110 group-hover:rotate-12 transition-all">
+                <ng-icon name="heroExclamationTriangle" size="24"></ng-icon>
+              </div>
+              <span class="text-3xl font-black text-slate-900 dark:text-white">{{ stats.lowStock }}</span>
+            </div>
+            <p class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em]">Critical Items</p>
+            <p
+              class="text-[9px] font-bold text-rose-500 uppercase mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              Click to Analyze</p>
+          </div>
+          <div
+            class="absolute right-0 bottom-0 translate-x-1/4 translate-y-1/4 opacity-[0.03] dark:opacity-[0.1] group-hover:scale-110 transition-transform">
+            <ng-icon name="heroFire" size="100" class="text-rose-500"></ng-icon>
+          </div>
+        </div>
+
+        <div
+          class="flex-1 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-7 shadow-sm relative overflow-hidden group">
+          <div class="flex justify-between items-center mb-4">
+            <div
+              class="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform">
+              <ng-icon name="heroPresentationChartLine" size="24"></ng-icon>
+            </div>
+            <span class="text-2xl font-black text-slate-900 dark:text-white">${{ (stats.totalValue) | number:'1.0-0'
+              }}</span>
+          </div>
+          <p class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em]">Liquid Assets</p>
+          <div class="absolute right-0 bottom-0 translate-x-1/4 translate-y-1/4 opacity-[0.03] dark:opacity-[0.1]">
+            <ng-icon name="heroBanknotes" size="100" class="text-emerald-500"></ng-icon>
+          </div>
+        </div>
       </div>
 
       <div
-        class="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Stock Health</p>
-        <div class="flex items-end gap-2 h-12">
-          <div class="flex-1 bg-emerald-500 rounded-t-md transition-all hover:opacity-80" [style.height.%]="80"></div>
-          <div class="flex-1 bg-amber-400 rounded-t-md transition-all hover:opacity-80" [style.height.%]="40"></div>
-          <div class="flex-1 bg-rose-500 rounded-t-md transition-all hover:opacity-80" [style.height.%]="20"></div>
+        class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[3rem] p-8 shadow-sm">
+        <div class="flex items-center gap-2 mb-8">
+          <div class="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+            <ng-icon name="heroChartPie" class="text-indigo-500" size="18"></ng-icon>
+          </div>
+          <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Asset Distribution</h3>
         </div>
-        <div class="flex justify-between mt-3 text-[9px] font-black text-slate-400 uppercase">
-          <span>Good</span>
-          <span>Critical</span>
-        </div>
-      </div>
 
-      <div
-        class="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Assets</p>
-        <h3 class="text-4xl font-black text-slate-900 dark:text-white">{{ stats.totalProducts }}</h3>
-        <div class="mt-4 flex items-center gap-2 text-emerald-500 font-bold text-xs">
-          <ng-icon name="heroArrowTrendingUp"></ng-icon> +2.4% <span
-            class="text-slate-400 font-medium italic">growth</span>
-        </div>
-      </div>
+        <div class="space-y-6">
+          <div *ngFor="let cat of categoryStats.slice(0, 4)" class="group cursor-default">
+            <div class="flex justify-between text-[11px] font-black mb-2 uppercase tracking-tight">
+              <span class="text-slate-600 dark:text-slate-400 group-hover:text-indigo-500 transition-colors">{{ cat.name
+                }}</span>
+              <span class="text-slate-900 dark:text-white">{{ cat.percentage | number:'1.0-1' }}%</span>
+            </div>
+            <div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-slate-900 dark:bg-indigo-500 transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+                [style.width.%]="cat.percentage"></div>
+            </div>
+          </div>
 
-      <div class="bg-slate-900 dark:bg-blue-600 p-6 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
-        <p class="text-white/60 text-[10px] font-black uppercase tracking-widest mb-1">Inventory Valuation</p>
-        <h3 class="text-3xl font-black tracking-tighter">${{ stats.totalValue | number:'1.0-0' }}</h3>
-        <div class="absolute -right-4 -bottom-4 opacity-10">
-          <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.97 0-1.8 1.39-3.06 3.11-3.41V4h2.67v1.94c1.47.31 2.82 1.22 2.94 3.1h-1.89c-.17-.91-.73-1.66-2.39-1.66-1.58 0-2.25.75-2.25 1.48 0 .77.58 1.41 2.82 1.97 2.61.64 4.04 1.76 4.04 4.02 0 1.94-1.44 3.29-3.37 3.66z" />
-          </svg>
+          <div class="pt-6 mt-2 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Global Status</span>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+              <span class="text-[9px] font-black text-emerald-500 uppercase">Optimized</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <div
-      class="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-
+      class="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-12">
       <div class="p-8 flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-50/30 dark:bg-slate-800/20">
         <div>
           <div class="flex items-center gap-2 mb-1">
@@ -100,10 +173,6 @@
             <input type="text" placeholder="Search by SKU, Name..." [(ngModel)]="searchTerm" (input)="applyFilter()"
               class="w-full pl-14 pr-6 py-4 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 border rounded-2xl text-sm font-semibold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
           </div>
-          <button
-            class="w-12 h-12 flex items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-            <ng-icon name="heroAdjustmentsHorizontal" size="20"></ng-icon>
-          </button>
         </div>
       </div>
 
@@ -111,6 +180,9 @@
         <table class="w-full text-left border-separate border-spacing-y-2">
           <thead>
             <tr class="text-slate-400 text-[10px] uppercase font-black tracking-[0.2em]">
+              <th class="px-6 py-4">
+                <input type="checkbox" (change)="toggleAll($event)" class="rounded border-slate-300">
+              </th>
               <th class="px-6 py-4">Product Detail</th>
               <th class="px-6 py-4">Category</th>
               <th class="px-6 py-4">Stock Status</th>
@@ -118,10 +190,9 @@
               <th class="px-6 py-4 text-right">Operations</th>
             </tr>
           </thead>
-
           <tbody class="divide-y-0">
             <tr *ngIf="isLoading">
-              <td colspan="5" class="px-6 py-10 text-center">
+              <td colspan="6" class="px-6 py-10 text-center">
                 <div class="flex flex-col items-center gap-2">
                   <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Syncing Ledger...</span>
@@ -132,10 +203,14 @@
             <tr *ngFor="let p of filteredProducts"
               class="group bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 shadow-sm border border-slate-100 dark:border-slate-800">
               <td class="px-6 py-5 first:rounded-l-2xl border-y border-l border-slate-100 dark:border-slate-800">
+                <input type="checkbox" [checked]="isSelected(p._id)" (change)="toggleSelection(p._id)"
+                  class="rounded border-slate-300">
+              </td>
+              <td class="px-6 py-5 border-y border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-4">
                   <div
                     class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shadow-inner flex-shrink-0">
-                    <img [src]="'http://http://16.176.174.48/:5000/' + p.image" (error)="onImageError($event)"
+                    <img [src]="'http://16.176.174.48:5000/' + p.image" (error)="onImageError($event)"
                       class="w-full h-full object-cover">
                   </div>
                   <div class="flex flex-col">
@@ -145,16 +220,12 @@
                   </div>
                 </div>
               </td>
-
               <td class="px-6 py-5 border-y border-slate-100 dark:border-slate-800">
                 <div
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[11px] font-bold uppercase">
-                  <ng-icon name="heroTag" size="12"></ng-icon>
-
-                  {{ p.category?.name || 'Uncategorized' }}
+                  <ng-icon name="heroTag" size="12"></ng-icon>{{ p.category?.name || 'Uncategorized' }}
                 </div>
               </td>
-
               <td class="px-6 py-5 border-y border-slate-100 dark:border-slate-800">
                 <div class="flex flex-col gap-1.5 w-40">
                   <div class="flex justify-between items-end">
@@ -171,11 +242,9 @@
                   </div>
                 </div>
               </td>
-
               <td class="px-6 py-5 border-y border-slate-100 dark:border-slate-800 text-base font-black tracking-tight">
                 ${{ p.price | number:'1.2-2' }}
               </td>
-
               <td
                 class="px-6 py-5 last:rounded-r-2xl border-y border-r border-slate-100 dark:border-slate-800 text-right">
                 <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -190,16 +259,108 @@
                 </div>
               </td>
             </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-            <tr *ngIf="!isLoading && filteredProducts.length === 0">
-              <td colspan="5" class="px-10 py-32 text-center">
+    <section class="mb-12">
+      <div class="flex items-center gap-2 mb-4 px-2">
+        <ng-icon name="heroExclamationTriangle" class="text-rose-500" size="18"></ng-icon>
+        <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Critical Stock Alerts
+        </h3>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-rose-100 dark:border-rose-900/20 overflow-hidden shadow-sm">
+        <table class="w-full text-left">
+          <thead class="bg-rose-50/50 dark:bg-rose-900/10 text-[10px] font-black uppercase text-rose-600">
+            <tr>
+              <th class="px-8 py-4">Urgency</th>
+              <th class="px-8 py-4">Product Name</th>
+              <th class="px-8 py-4">Current Stock</th>
+              <th class="px-8 py-4 text-right">Procurement</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            <tr *ngFor="let p of getLowStockItems()"
+              class="hover:bg-rose-50/30 dark:hover:bg-rose-900/10 transition-colors">
+              <td class="px-8 py-5">
+                <span [class]="p.stock === 0 ? 'bg-rose-600 text-white' : 'bg-amber-100 text-amber-700'"
+                  class="px-2 py-1 rounded text-[9px] font-black uppercase">
+                  {{ p.stock === 0 ? 'Out of Stock' : 'Low Stock' }}
+                </span>
+              </td>
+              <td class="px-8 py-5 font-bold text-slate-700 dark:text-slate-200">{{ p.name }}</td>
+              <td class="px-8 py-5 font-mono text-rose-500 font-bold">{{ p.stock }} units remaining</td>
+              <td class="px-8 py-5 text-right">
+                <button class="text-blue-600 font-black text-[10px] uppercase tracking-tighter hover:underline">Generate
+                  Order</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
+      <div
+        class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+        <div class="flex justify-between items-center mb-8">
+          <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Asset Distribution
+          </h3>
+          <span class="text-[10px] font-bold text-slate-400 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">By
+            Valuation</span>
+        </div>
+        <div class="space-y-6">
+          <div *ngFor="let cat of categoryStats" class="group">
+            <div class="flex justify-between text-xs mb-2">
+              <span class="font-bold text-slate-600 dark:text-slate-400">{{ cat.name }}</span>
+              <span class="font-mono font-black text-slate-900 dark:text-white">${{ cat.value | number:'1.0-0' }}</span>
+            </div>
+            <div class="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-blue-500 group-hover:bg-blue-400 transition-all duration-1000"
+                [style.width.%]="cat.percentage"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+        <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-8">Operational Logs
+        </h3>
+        <div class="space-y-6">
+          <div class="flex gap-4 items-start pb-4 border-b border-slate-50 dark:border-slate-800/50">
+            <div
+              class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
+              <ng-icon name="heroCheckCircle" size="20"></ng-icon>
+            </div>
+            <div>
+              <p class="text-xs text-slate-700 dark:text-slate-300 font-bold">Cloud Inventory Synchronized</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">Global ledger updated with EC2 Production instance.</p>
+              <span class="text-[9px] font-mono text-slate-400 uppercase mt-2 block">12:44 PM · SYSTEM_AUTO</span>
+            </div>
+          </div>
+          <div class="flex gap-4 items-start">
+            <div
+              class="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
+              <ng-icon name="heroUserCircle" size="20"></ng-icon>
+            </div>
+            <div>
+              <p class="text-xs text-slate-700 dark:text-slate-300 font-bold">New Asset Entry Created</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">Admin initialized SKU-88291 via Dashboard Controller.</p>
+              <span class="text-[9px] font-mono text-slate-400 uppercase mt-2 block">10:15 AM · ADMIN_PHU</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <app-confirm-dialog *ngIf="showDeleteDialog" title="Purge Product"
+    message="You are about to permanently remove this item from the inventory. This action cannot be undone."
+    (confirmed)="confirmDeletion()" (cancelled)="showDeleteDialog = false">
+  </app-confirm-dialog>
 
   <app-add-product *ngIf="showAddProductModal" (productAdded)="onProductAdded($event)"
     (close)="closeAddProductModal()"></app-add-product>
